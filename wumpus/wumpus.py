@@ -16,6 +16,7 @@
 # (see http://minisat.se) SAT solver, and is directly based on the satispy
 # python project, see https://github.com/netom/satispy .
 
+from wumpus_reinforcement_learning_agent import *
 from wumpus_agent import *
 from time import clock
 import wumpus_environment
@@ -168,6 +169,32 @@ class WumpusWorldScenario(object):
         print self.env.to_string()
 
 
+
+#-------------------------------------------------------------------------------
+
+def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
+    """
+    Create WumpusWorldScenario with an automated reinforcement learning agent_program
+    that will try to solve the Hunt The Wumpus game on its own and learn from its own
+    experiences.
+    layout_filename := name of layout file to load
+    """
+    return WumpusWorldScenario(layout_file = layout_filename,
+                               agent = QLearningWumpusAgent('north', verbose=True),
+                               trace=False)
+
+#------------------------------------
+# examples of constructing ReinforcementLearningWumpusAgent scenario
+# specifying objects as list
+
+def wscenario_4x4_QLearningWumpusAgent():
+    return WumpusWorldScenario(agent = QLearningWumpusAgent('north', verbose=True),
+                               objects = [(Wumpus(),(1,3)),
+                                          (Pit(),(3,3)),
+                                          (Pit(),(3,1)),
+                                          (Gold(),(2,3))],
+                               width = 4, height = 4, entrance = (1,1),
+                               trace=True)
 
 #-------------------------------------------------------------------------------
 
@@ -636,6 +663,9 @@ def readCommand( argv ):
     parser.add_option('-y', '--hybrid', action='store_true', dest='hybrid', default=False,
                       help=default("Run hybrid wumpus agent" \
                                    + " (takes precedence over -k option)"))
+    parser.add_option('-q', '--qlearning', action='store_true', dest='rl', default=False,
+                      help=default("Run reinforcement learning wumpus agent" \
+                                   + " (takes precedence over -k and -y option)"))
     parser.add_option('-l', '--layout', dest='layout', default=None,
                       help=default("Load layout file"))
 
@@ -654,6 +684,11 @@ def run_command(options):
     if options.test_minisat:
         run_minisat_test()
         return
+    if options.rl:
+        if options.layout:
+            s = world_scenario_qlearning_wumpus_agent_from_layout(options.layout)
+        else:
+            s = wscenario_4x4_QLearningWumpusAgent()
     if options.hybrid:
         if options.layout:
             s = world_scenario_hybrid_wumpus_agent_from_layout(options.layout)

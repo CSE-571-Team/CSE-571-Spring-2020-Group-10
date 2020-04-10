@@ -475,3 +475,10 @@ class HybridWumpusAgent(Explorer):
         self.time += 1 # advance the agent's time
         return action
 
+#-------------------------------------------------------------------------------
+
+class QLearningWumpusAgent(QLearningAgent):
+    "A Q learning agent for the wumpus world that uses reinforcement learning."""
+    def __init__(self, heading='east', environment=None, verbose=True, keep_axioms=True):
+        self.keep_axioms = keep_axioms # for debugging: if True, keep easier-to-read PL form
+        super(HybridWumpusAgent, self).__init__(self.agent_program, heading, environment, verbose)
