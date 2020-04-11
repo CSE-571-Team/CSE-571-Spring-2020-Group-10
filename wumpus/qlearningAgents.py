@@ -15,11 +15,11 @@
 from game import *
 from learningAgents import ReinforcementAgent
 from featureExtractors import *
-from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation
-from keras.optimizers import RMSprop
+# from keras.models import Sequential
+# from keras.layers.core import Dense, Dropout, Activation
+# from keras.optimizers import RMSprop
 
-import numpy as np
+# import numpy as np
 import random, util, math
 
 
@@ -220,78 +220,78 @@ class ApproximateQAgent(PacmanQAgent):
             pass
 
 
-class NeuralNetQAgent(PacmanQAgent):
-    def __init__(self, extractor='IdentityExtractor', *args, **kwargs):
-        self.nnet = None
-        PacmanQAgent.__init__(self, *args, **kwargs)
+# class NeuralNetQAgent(PacmanQAgent):
+#     def __init__(self, extractor='IdentityExtractor', *args, **kwargs):
+#         self.nnet = None
+#         PacmanQAgent.__init__(self, *args, **kwargs)
 
-    def getQValue(self, state, action):
-        if self.nnet is None:
-            self.nnet = NeuralNetwork(state)
-        prediction = self.nnet.predict(state, action)
-        return prediction
+#     def getQValue(self, state, action):
+#         if self.nnet is None:
+#             self.nnet = NeuralNetwork(state)
+#         prediction = self.nnet.predict(state, action)
+#         return prediction
 
-    def update(self, state, action, nextState, reward):
-        if self.nnet is None:
-            self.nnet = NeuralNetwork(state)
+#     def update(self, state, action, nextState, reward):
+#         if self.nnet is None:
+#             self.nnet = NeuralNetwork(state)
 
-        maxQ = 0
-        for a in self.getLegalActions(nextState):
-            if self.getQValue(state, action) > maxQ:
-                maxQ = self.getQValue(state, action)
+#         maxQ = 0
+#         for a in self.getLegalActions(nextState):
+#             if self.getQValue(state, action) > maxQ:
+#                 maxQ = self.getQValue(state, action)
 
-        y = reward + (self.discount * maxQ)
+#         y = reward + (self.discount * maxQ)
 
-        self.nnet.update(nextState, action, y)
+#         self.nnet.update(nextState, action, y)
 
 
-class NeuralNetwork:
-    def __init__(self, state):
-        walls = state.getWalls()
-        self.width = walls.width
-        self.height = walls.height
-        self.size = 5 * self.width * self.height
+# class NeuralNetwork:
+#     def __init__(self, state):
+#         walls = state.getWalls()
+#         self.width = walls.width
+#         self.height = walls.height
+#         self.size = 5 * self.width * self.height
 
-        self.model = Sequential()
-        self.model.add(Dense(164, init='lecun_uniform', input_shape=(875,)))
-        self.model.add(Activation('relu'))
+#         self.model = Sequential()
+#         self.model.add(Dense(164, init='lecun_uniform', input_shape=(875,)))
+#         self.model.add(Activation('relu'))
 
-        self.model.add(Dense(150, init='lecun_uniform'))
-        self.model.add(Activation('relu'))
+#         self.model.add(Dense(150, init='lecun_uniform'))
+#         self.model.add(Activation('relu'))
 
-        self.model.add(Dense(1, init='lecun_uniform'))
-        self.model.add(Activation('linear'))
+#         self.model.add(Dense(1, init='lecun_uniform'))
+#         self.model.add(Activation('linear'))
 
-        rms = RMSprop()
-        self.model.compile(loss='mse', optimizer=rms)
+#         rms = RMSprop()
+#         self.model.compile(loss='mse', optimizer=rms)
 
-    def predict(self, state, action):
-        reshaped_state = self.reshape(state, action)
-        return self.model.predict(reshaped_state, batch_size=1)[0][0]
+#     def predict(self, state, action):
+#         reshaped_state = self.reshape(state, action)
+#         return self.model.predict(reshaped_state, batch_size=1)[0][0]
 
-    def update(self, state, action, y):
-        reshaped_state = self.reshape(state, action)
-        y = [[y]]
-        self.model.fit(reshaped_state, y, batch_size=1, nb_epoch=1, verbose=1)
+#     def update(self, state, action, y):
+#         reshaped_state = self.reshape(state, action)
+#         y = [[y]]
+#         self.model.fit(reshaped_state, y, batch_size=1, nb_epoch=1, verbose=1)
 
-    def reshape(self, state, action):
-        reshaped_state = np.empty((1, 2 * self.size))
-        food = state.getFood()
-        walls = state.getWalls()
-        for x in range(self.width):
-            for y in range(self.height):
-                reshaped_state[0][x * self.width + y] = int(food[x][y])
-                reshaped_state[0][self.size + x * self.width + y] = int(walls[x][y])
-        ghosts = state.getGhostPositions()
-        ghost_states = np.zeros((1, self.size))
-        for g in ghosts:
-            ghost_states[0][int(g[0] * self.width + g[1])] = int(1)
-        x, y = state.getPacmanPosition()
-        dx, dy = Actions.directionToVector(action)
-        next_x, next_y = int(x + dx), int(y + dy)
-        pacman_state = np.zeros((1, self.size))
-        pacman_state[0][int(x * self.width + y)] = 1
-        pacman_nextState = np.zeros((1, self.size))
-        pacman_nextState[0][int(next_x * self.width + next_y)] = 1
-        reshaped_state = np.concatenate((reshaped_state, ghost_states, pacman_state, pacman_nextState), axis=1)
-        return reshaped_state
+#     def reshape(self, state, action):
+#         reshaped_state = np.empty((1, 2 * self.size))
+#         food = state.getFood()
+#         walls = state.getWalls()
+#         for x in range(self.width):
+#             for y in range(self.height):
+#                 reshaped_state[0][x * self.width + y] = int(food[x][y])
+#                 reshaped_state[0][self.size + x * self.width + y] = int(walls[x][y])
+#         ghosts = state.getGhostPositions()
+#         ghost_states = np.zeros((1, self.size))
+#         for g in ghosts:
+#             ghost_states[0][int(g[0] * self.width + g[1])] = int(1)
+#         x, y = state.getPacmanPosition()
+#         dx, dy = Actions.directionToVector(action)
+#         next_x, next_y = int(x + dx), int(y + dy)
+#         pacman_state = np.zeros((1, self.size))
+#         pacman_state[0][int(x * self.width + y)] = 1
+#         pacman_nextState = np.zeros((1, self.size))
+#         pacman_nextState[0][int(next_x * self.width + next_y)] = 1
+#         reshaped_state = np.concatenate((reshaped_state, ghost_states, pacman_state, pacman_nextState), axis=1)
+#         return reshaped_state

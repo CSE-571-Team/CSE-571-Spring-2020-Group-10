@@ -16,7 +16,7 @@
 # (see http://minisat.se) SAT solver, and is directly based on the satispy
 # python project, see https://github.com/netom/satispy .
 
-from wumpus_reinforcement_learning_agent import *
+from qlearningAgents import *
 from wumpus_agent import *
 from time import clock
 import wumpus_environment
