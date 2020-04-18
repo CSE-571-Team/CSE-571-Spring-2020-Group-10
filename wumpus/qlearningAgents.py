@@ -20,7 +20,7 @@ from learningAgents import ReinforcementAgent
 # from keras.optimizers import RMSprop
 
 # import numpy as np
-import random, math #, util
+import random, math, util
 
 
 class QLearningAgent(ReinforcementAgent):

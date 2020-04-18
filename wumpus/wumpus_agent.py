@@ -480,9 +480,24 @@ class HybridWumpusAgent(Explorer):
 
 class QLearningWumpusAgent(Explorer, QLearningAgent):
     "A Q learning agent for the wumpus world that uses reinforcement learning."""
-    def __init__(self, heading='east', environment=None, verbose=True, keep_axioms=True):
-        self.keep_axioms = keep_axioms # for debugging: if True, keep easier-to-read PL form
+    def __init__(self, heading='east', environment=None, verbose=True, epsilon=0.05, gamma=0.8, alpha=0.2, numTraining=0, **args):
         super(QLearningWumpusAgent, self).__init__(self.agent_program, heading, environment, verbose)
+        args['epsilon'] = epsilon
+        args['gamma'] = gamma
+        args['alpha'] = alpha
+        args['numTraining'] = numTraining
+        self.index = 0
+        QLearningAgent.__init__(self, **args)
+
+    def getAction(self, state):
+        """
+        Simply calls the getAction method of QLearningAgent and then
+        informs parent of action for Pacman.  Do not change or remove this
+        method.
+        """
+        action = QLearningAgent.getAction(self, state)
+        self.doAction(state, action)
+        return action
 
     def agent_program(self, percept):
         " Implementation of Hybrid-Wumpus-Agent of [Fig. 7.20], p.270 "

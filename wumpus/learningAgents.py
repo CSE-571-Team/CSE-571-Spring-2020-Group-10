@@ -14,7 +14,7 @@
 
 from game import Agent#, Directions, Actions
 
-import random,time#,util
+import random, time, util
 
 class ValueEstimationAgent(Agent):
     """
