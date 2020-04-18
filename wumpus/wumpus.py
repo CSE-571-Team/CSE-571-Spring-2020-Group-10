@@ -16,7 +16,7 @@
 # (see http://minisat.se) SAT solver, and is directly based on the satispy
 # python project, see https://github.com/netom/satispy .
 
-from wumpus_reinforcement_learning_agent import *
+# from wumpus_reinforcement_learning_agent import *
 from wumpus_agent import *
 from time import clock
 import wumpus_environment
@@ -46,9 +46,13 @@ class WumpusWorldScenario(object):
         """
         layout_file := (<string: layout_file_name>, <agent>)
         """
-        if agent != None and not isinstance(agent, Explorer):
-            raise Exception("agent must be type Explorer, got instance of class\n" \
-                            + " {0}".format(agent.__class__))
+        #if agent != None and not isinstance(agent, Explorer):
+        #    raise Exception("agent must be type Explorer, got instance of class\n" \
+        #                    + " {0}".format(agent.__class__))
+        if agent != None and not isinstance(agent, Explorer) and not isinstance(agent, QLearningAgent):
+            raise Exception("agent mustb be of type Explorer or QLearningAgent, got instance of class\n" \
+                            + " (0)".format(agent.__class__))
+
         if layout_file:
             objects, width, height, entrance = self.load_layout(layout_file)
             

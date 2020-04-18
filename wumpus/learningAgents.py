@@ -12,9 +12,9 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
-from game import Directions, Agent, Actions
+from game import Agent#, Directions, Actions
 
-import random,util,time
+import random,time#,util
 
 class ValueEstimationAgent(Agent):
     """

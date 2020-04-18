@@ -16,6 +16,7 @@
 # (see http://minisat.se) SAT solver, and is directly based on the satispy
 # python project, see https://github.com/netom/satispy .
 
+from qlearningAgents import *
 from logic import *
 from wumpus_environment import *
 from wumpus_kb import *
@@ -477,8 +478,12 @@ class HybridWumpusAgent(Explorer):
 
 #-------------------------------------------------------------------------------
 
-class QLearningWumpusAgent(QLearningAgent):
+class QLearningWumpusAgent(Explorer, QLearningAgent):
     "A Q learning agent for the wumpus world that uses reinforcement learning."""
     def __init__(self, heading='east', environment=None, verbose=True, keep_axioms=True):
         self.keep_axioms = keep_axioms # for debugging: if True, keep easier-to-read PL form
-        super(HybridWumpusAgent, self).__init__(self.agent_program, heading, environment, verbose)
+        super(QLearningWumpusAgent, self).__init__(self.agent_program, heading, environment, verbose)
+
+    def agent_program(self, percept):
+        " Implementation of Hybrid-Wumpus-Agent of [Fig. 7.20], p.270 "
+        return []
