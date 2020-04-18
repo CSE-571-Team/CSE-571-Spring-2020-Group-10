@@ -17,6 +17,7 @@
 # python project, see https://github.com/netom/satispy .
 
 from qlearningAgents import *
+from wumpus_planners import *
 from logic import *
 from wumpus_environment import *
 from wumpus_kb import *
@@ -478,8 +479,52 @@ class HybridWumpusAgent(Explorer):
 
 #-------------------------------------------------------------------------------
 
-class QLearningWumpusAgent(QLearningAgent):
+class QLearningWumpusAgent(QLearningAgent, Explorer):
     "A Q learning agent for the wumpus world that uses reinforcement learning."""
-    def __init__(self, heading='east', environment=None, verbose=True, keep_axioms=True):
-        self.keep_axioms = keep_axioms # for debugging: if True, keep easier-to-read PL form
-        super(HybridWumpusAgent, self).__init__(self.agent_program, heading, environment, verbose)
+    def __init__(self, heading='east', environment=None, verbose=True, epsilon=0.05, gamma=0.8, alpha=0.2, numTraining=0, **args):
+        # self.keep_axioms = keep_axioms # for debugging: if True, keep easier-to-read PL form
+        """
+        These default parameters can be changed from the wumpus.py command line.
+        For example, to change the exploration rate, try:
+            python wumpus.py -p PacmanQLearningAgent -a epsilon=0.1
+        alpha    - learning rate
+        epsilon  - exploration rate
+        gamma    - discount factor
+        numTraining - number of training episodes, i.e. no learning after these many episodes
+        """
+        args['epsilon'] = epsilon
+        args['gamma'] = gamma
+        args['alpha'] = alpha
+        args['numTraining'] = numTraining
+        QLearningAgent.__init__(self, **args)
+        Explorer.__init__(self, self.agent_program, heading, environment, verbose)
+
+    def getAction(self, state):
+        """
+        Simply calls the getAction method of QLearningAgent and then
+        informs parent of action for Pacman.  Do not change or remove this
+        method.
+        """
+        action = QLearningAgent.getAction(self, state)
+        self.doAction(state, action)
+        return action
+        
+    def agent_program(self, percept):
+        print("running")
+        # if the agent is in training phase choose random action and update the Q value
+        if self.isInTesting(self):
+            print("In Training")
+            action = random.choice(PlanRouteProblem.actions(self, self.state))
+            nextState = PlanRouteProblem.result(self, self.state, action)
+            reward = self.performance_measure()
+            self.update(self, self.state, action, nextState, reward)
+            print(action)
+            print(nextState)
+        else:
+            print("Trained")
+            action = self.getPolicy(self, self.state)
+        return action 
+
+    
+    
+    
