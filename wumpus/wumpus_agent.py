@@ -481,7 +481,7 @@ class HybridWumpusAgent(Explorer):
 
 class QLearningWumpusAgent(QLearningAgent, Explorer):
     "A Q learning agent for the wumpus world that uses reinforcement learning."""
-    def __init__(self, heading='east', environment=None, verbose=True, epsilon=0.05, gamma=0.8, alpha=0.2, numTraining=0, **args):
+    def __init__(self, heading='east', environment=None, verbose=True, epsilon=0.05, gamma=0.8, alpha=0.2, numTraining=100, **args):
         # self.keep_axioms = keep_axioms # for debugging: if True, keep easier-to-read PL form
         """
         These default parameters can be changed from the wumpus.py command line.
@@ -497,33 +497,45 @@ class QLearningWumpusAgent(QLearningAgent, Explorer):
         args['alpha'] = alpha
         args['numTraining'] = numTraining
         QLearningAgent.__init__(self, **args)
-        Explorer.__init__(self, self.agent_program, heading, environment, verbose)
+        Explorer.__init__(self, program = self.agent_program, heading = 'north', environment = environment, verbose = True)
+        self.previous_score = 0
+        self.current_score = 0
+        self.action = 'Forward'
+        # self.state = (WumpusEnvironment.agent.location , WumpusEnvironment.heading)
 
-    def getAction(self, state):
-        """
-        Simply calls the getAction method of QLearningAgent and then
-        informs parent of action for Pacman.  Do not change or remove this
-        method.
-        """
-        action = QLearningAgent.getAction(self, state)
-        self.doAction(state, action)
-        return action
+    def reset(self):
+        Explorer.reset(self)
+        self.previous_score = 0
+        self.current_score = 0
+        # self.policy = self.train_qlearning()
+        self.action = 'Forward'
+
+    # def getAction(self):
+    #     action = QLearningAgent.getAction(self, self.state)
+    #     # QLearningAgent.doAction(state, action)
+    #     return action
+
+    # def train_qlearning(self):
+    #     # if(Explorer.has_arrow()):
+    #     # action = ['Forward', 'TurnLeft', 'TurnRight']
+    #     # else:
+    #     # action = ['Forward', 'TurnLeft', 'TurnRight']
         
+        
+
+    #     action = self.getAction(self, self.state)
+    #     nextState = PlanRouteProblem.result(self, self.state, action)
+        
+    #     self.current_score = Explorer.performance_measure()
+    #     reward = self.current_score - self.previous_score
+    #     self.previous_score = self.current_score
+    #     QLearningAgent.update(self, self.state, action, nextState, reward)
+        
+    #     return policy
+
     def agent_program(self, percept):
-        print("running")
-        # if the agent is in training phase choose random action and update the Q value
-        if self.isInTesting(self):
-            print("In Training")
-            action = random.choice(PlanRouteProblem.actions(self, self.state))
-            nextState = PlanRouteProblem.result(self, self.state, action)
-            reward = self.performance_measure()
-            self.update(self, self.state, action, nextState, reward)
-            print(action)
-            print(nextState)
-        else:
-            print("Trained")
-            action = self.getPolicy(self, self.state)
-        return action 
+        # action = QLearningAgent.getPolicy(self, self.state)
+        return self.action 
 
     
     

@@ -188,14 +188,21 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
 # specifying objects as list
 
 def wscenario_4x4_QLearningWumpusAgent():
-    return WumpusWorldScenario(agent = QLearningWumpusAgent('north', verbose=True),
+    # return WumpusWorldScenario(agent = QLearningWumpusAgent('north', verbose=True),
+    #                            objects = [(Wumpus(),(1,3)),
+    #                                       (Pit(),(3,3)),
+    #                                       (Pit(),(3,1)),
+    #                                       (Gold(),(2,3))],
+    #                            width = 4, height = 4, entrance = (1,1),
+    #                            trace=True)
+  
+    return WumpusWorldScenario(agent = with_qlearning_program(Explorer(heading='north', verbose=True)),
                                objects = [(Wumpus(),(1,3)),
                                           (Pit(),(3,3)),
                                           (Pit(),(3,1)),
                                           (Gold(),(2,3))],
                                width = 4, height = 4, entrance = (1,1),
-                               trace=True)
-
+                               trace=False)
 #-------------------------------------------------------------------------------
 
 def world_scenario_hybrid_wumpus_agent_from_layout(layout_filename):
@@ -282,6 +289,62 @@ def wscenario_4x4_manual_layout2_from_layout():
                                trace=False)
 
 #-------------------------------------------------------------------------------
+# Q learning agent program
+#-------------------------------------------------------------------------------
+def with_qlearning_program(agent):
+    helping  = ['?', 'help']
+    stopping = ['quit', 'stop', 'exit']
+    actions  = ['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Climb', 'Shoot', 'Wait']
+
+    def show_commands():
+        print "   The following are valid Hunt The Wumpus action:"
+        print "     {0}".format(', '.join(map(lambda a: '\'{0}\''.format(a), actions)))
+        print "   Enter {0} to get this command info" \
+              .format(' or '.join(map(lambda a: '\'{0}\''.format(a), helping)))
+        print "   Enter {0} to stop playing" \
+              .format(' or '.join(map(lambda a: '\'{0}\''.format(a), stopping)))
+        print "   Enter 'env' to display current wumpus environment"
+
+    def qlearning_program(percept):
+        print "[{0}] You perceive: {1}".format(agent.time,agent.pretty_percept_vector(percept))
+        action = None
+        
+        while not action:
+            # print('qval')
+            # print(qValues)
+            # print('reward')
+            # current_score = agent.performance_measure
+            
+            # print('current ' + str(current_score))
+            # print('previous ' + str(previous_score))
+            # previous_score = current_score
+            # print(reward)
+            action = random.choice(actions)
+            # print(action)
+            return action
+            val = raw_input("Enter Action ('?' for list of commands): ")
+            val = val.strip()
+            if val in helping:
+                print
+                show_commands()
+                print
+            elif val in stopping:
+                action = 'Stop'
+            elif val == 'env':
+                print
+                print "Current wumpus environment:"
+                print agent.env.to_string()
+            elif val in actions:
+                action = val
+            else:
+                print "'{0}' is an invalid command;".format(val) \
+                      + " try again (enter '?' for list of commands)"
+        agent.time += 1
+        return action
+
+    agent.program = qlearning_program
+    return agent
+#-------------------------------------------------------------------------------
 # Manual agent program
 #-------------------------------------------------------------------------------
 
@@ -297,7 +360,6 @@ def with_manual_program(agent):
     helping  = ['?', 'help']
     stopping = ['quit', 'stop', 'exit']
     actions  = ['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Climb', 'Shoot', 'Wait']
-
     def show_commands():
         print "   The following are valid Hunt The Wumpus action:"
         print "     {0}".format(', '.join(map(lambda a: '\'{0}\''.format(a), actions)))
@@ -306,11 +368,31 @@ def with_manual_program(agent):
         print "   Enter {0} to stop playing" \
               .format(' or '.join(map(lambda a: '\'{0}\''.format(a), stopping)))
         print "   Enter 'env' to display current wumpus environment"
+    class qlearning:
+        previous_score = 0
+        qValues = util.Counter()
+        state = (1,1,1)
 
     def manual_program(percept):
         print "[{0}] You perceive: {1}".format(agent.time,agent.pretty_percept_vector(percept))
         action = None
+        
         while not action:
+            
+            current_score = agent.performance_measure
+            reward = current_score - qlearning.previous_score
+            print('current ' + str(current_score))
+            print('previous ' + str(qlearning.previous_score))
+            qlearning.previous_score = current_score
+            print('reward')
+            print(reward)
+            print('agent location' + str(agent.location))
+            print('agent heading' + str(agent.heading))
+            state = (agent.location, agent.heading)
+            print('agent state' + str(state))
+            action = random.choice(actions)
+            # print(action)
+            return action
             val = raw_input("Enter Action ('?' for list of commands): ")
             val = val.strip()
             if val in helping:

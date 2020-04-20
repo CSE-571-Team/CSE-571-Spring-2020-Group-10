@@ -64,6 +64,7 @@ class Explorer(agents.Agent):
         NOTE: AIMA Ch7 example defaults to agent initially facing east,
         which is heading=3
         """
+        
         self.verbose = verbose
         super(Explorer, self).__init__(program)
         if isinstance(heading, str):
@@ -239,6 +240,11 @@ class WumpusEnvironment(agents.XYEnvironment):
         self.time_step = 0
         self.done = False
         self.global_percept_events = []
+        # self.state = (self.agent.location, self.agent.heading)
+        # print('agent')
+        # print(self.state)
+
+        
 
     def thing_classes(self):
         return [agents.Wall,
