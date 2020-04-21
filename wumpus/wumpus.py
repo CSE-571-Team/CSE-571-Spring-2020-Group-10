@@ -347,6 +347,15 @@ def with_qlearning_program(agent):
 #-------------------------------------------------------------------------------
 # Manual agent program
 #-------------------------------------------------------------------------------
+class qlearning():
+    previous_score = 0
+    qValues = util.Counter()
+    state = []
+    epsilon = 0.05
+    gamma = 0.8
+    alpha = 0.2
+    numTraining = 100
+    discount = float(gamma)
 
 def with_manual_program(agent):
     """
@@ -368,50 +377,109 @@ def with_manual_program(agent):
         print "   Enter {0} to stop playing" \
               .format(' or '.join(map(lambda a: '\'{0}\''.format(a), stopping)))
         print "   Enter 'env' to display current wumpus environment"
-    class qlearning:
-        previous_score = 0
-        qValues = util.Counter()
-        state = (1,1,1)
+    
+    def getQValue(state, action):
+        return qlearning.qValues[(state, action)]
+    def getLegalActions(state):
+        return ['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Climb', 'Shoot', 'Wait']
+    def computeValueFromQValues(state):
+        possibleActions = getLegalActions(state)
+        if possibleActions:
+            maxv = float("-inf")
+            for action in possibleActions:
+                q = getQValue(state, action)
+                if q >= maxv:
+                    maxv = q
+            return maxv
+        return 0.0   
+    def computeActionFromQValues(state):
+        possibleActions = getLegalActions(state)
+        if possibleActions:
+            maxv = float("-inf")
+            bestAction = None
+            for action in possibleActions:
+                q = getQValue(state, action)
+                if q >= maxv:
+                    maxv = q
+                    bestAction = action
+            return bestAction
+        return None
+    def getAction(state):
+        # Pick Action
+        possibleActions = getLegalActions(state)
+        action = None
+        if possibleActions:
+            if util.flipCoin(qlearning.epsilon) == True:
+                action = random.choice(possibleActions)
+            else:
+                action = getPolicy(state)
+        return action
+    def update(state, action, nextState, reward):
+        possibleActions = getLegalActions(nextState)
+        R = reward
+        if possibleActions:
+            Q = []
+            for a in possibleActions:
+                Q.append(getQValue(nextState, a))
+            R = reward + qlearning.discount * max(Q)
+        qlearning.qValues[(state, action)] = getQValue(state, action) + qlearning.alpha * (R - getQValue(state, action))
+
+    def getPolicy(state):
+        return computeActionFromQValues(state)
+    def getValue(state):
+        return computeValueFromQValues(state)
+    def getNextState(state, action):
+        if action == 'Forward':
+            increment = [(0, 1), (-1, 0), (0, -1), (1, 0)]
+            x, y = increment[state[2]]
+            return (state[0] + x, state[1] + y, state[2])
+        elif action == 'TurnRight':
+            return (state[0], state[1], (state[2] - 1) % 4)
+        elif action == 'TurnLeft':
+            return (state[0], state[1], (state[2] + 1) % 4)
+        return state
 
     def manual_program(percept):
         print "[{0}] You perceive: {1}".format(agent.time,agent.pretty_percept_vector(percept))
         action = None
         
         while not action:
-            
+            qlearning.state = (agent.location[0], agent.location[1], agent.heading)
+            print('state' + str(qlearning.state))
             current_score = agent.performance_measure
             reward = current_score - qlearning.previous_score
             print('current ' + str(current_score))
             print('previous ' + str(qlearning.previous_score))
             qlearning.previous_score = current_score
-            print('reward')
-            print(reward)
-            print('agent location' + str(agent.location))
-            print('agent heading' + str(agent.heading))
-            state = (agent.location, agent.heading)
-            print('agent state' + str(state))
+            print('reward' + str(reward))
             action = random.choice(actions)
+            next_state = getNextState(qlearning.state, action)
+            update(qlearning.state, action, next_state, reward)
+            # print('agent state' + str(state))
+            print('policy')
+            print(qlearning.qValues)
+            print('....................................')
             # print(action)
-            return action
-            val = raw_input("Enter Action ('?' for list of commands): ")
-            val = val.strip()
-            if val in helping:
-                print
-                show_commands()
-                print
-            elif val in stopping:
-                action = 'Stop'
-            elif val == 'env':
-                print
-                print "Current wumpus environment:"
-                print agent.env.to_string()
-            elif val in actions:
-                action = val
-            else:
-                print "'{0}' is an invalid command;".format(val) \
-                      + " try again (enter '?' for list of commands)"
-        agent.time += 1
-        return action
+            return getPolicy(qlearning.state)
+        #     val = raw_input("Enter Action ('?' for list of commands): ")
+        #     val = val.strip()
+        #     if val in helping:
+        #         print
+        #         show_commands()
+        #         print
+        #     elif val in stopping:
+        #         action = 'Stop'
+        #     elif val == 'env':
+        #         print
+        #         print "Current wumpus environment:"
+        #         print agent.env.to_string()
+        #     elif val in actions:
+        #         action = val
+        #     else:
+        #         print "'{0}' is an invalid command;".format(val) \
+        #               + " try again (enter '?' for list of commands)"
+        # agent.time += 1
+        # return action
 
     agent.program = manual_program
     return agent
