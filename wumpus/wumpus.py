@@ -460,6 +460,7 @@ def with_manual_program(agent):
             print(qlearning.qValues)
             print('....................................')
             # print(action)
+            # return getPolicy(qlearning.state)
             return getPolicy(qlearning.state)
         #     val = raw_input("Enter Action ('?' for list of commands): ")
         #     val = val.strip()
