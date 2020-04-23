@@ -158,7 +158,9 @@ class WumpusWorldScenario(object):
                 return
             self.step()
     
-    def custom_run(self, training = 100):
+    # to run multiple episodes in the wumpus world
+    def custom_run(self, training = 10):
+        f = open("policy.txt", 'w')
         for num_run in range(training):
             self.__init__(agent = with_manual_program(Explorer(heading='north', verbose=True)),
                                 objects = [(Wumpus(),(1,3)),
@@ -168,6 +170,7 @@ class WumpusWorldScenario(object):
                                 width = 4, height = 4, entrance = (1,1),
                                 trace=False)
             self.run()
+        f.write(str(qlearning.qValues))
 
     def to_string(self):
         s = "Environment width={0}, height={1}\n".format(self.width, self.height)
@@ -359,6 +362,10 @@ def with_qlearning_program(agent):
 # Manual agent program
 #-------------------------------------------------------------------------------
 class qlearning():
+    # state[2] = 0 --> north
+    # state[2] = 1 --> west
+    # state[2] = 2 --> south
+    # state[2] = 3 --> east
     previous_score = 0
     qValues = util.Counter()
     state = []
@@ -396,11 +403,11 @@ def with_manual_program(agent):
         # return ['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Climb', 'Shoot', 'Wait']
         if percept[2]:
             return ['Grab']
-        if agent.has_gold and state[0] == 1 and state[1] == 1:
-            ['Climb']
+        # if agent.has_gold and state[0] == 1 and state[1] == 1:
+            # ['Climb']
         if agent.has_arrow:
-            return ['TurnRight', 'TurnLeft', 'Forward', 'Shoot']
-        return ['TurnRight', 'TurnLeft', 'Forward']
+            return ['TurnRight', 'TurnLeft', 'Forward', 'Climb', 'Shoot']
+        return ['TurnRight', 'TurnLeft', 'Forward', 'Climb']
     def computeValueFromQValues(state, percept):
         possibleActions = getLegalActions(state, percept)
         if possibleActions:
@@ -449,6 +456,7 @@ def with_manual_program(agent):
         return computeValueFromQValues(state, percept)
     def getNextState(state, action):
         if action == 'Forward':
+            # if forward state in allowed state then only return next state else same state
             increment = [(0, 1), (-1, 0), (0, -1), (1, 0)]
             x, y = increment[state[2]]
             return (state[0] + x, state[1] + y, state[2])
