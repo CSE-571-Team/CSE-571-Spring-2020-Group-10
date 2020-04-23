@@ -157,6 +157,17 @@ class WumpusWorldScenario(object):
                 print ''.join(slist)
                 return
             self.step()
+    
+    def custom_run(self, training = 100):
+        for num_run in range(training):
+            self.__init__(agent = with_manual_program(Explorer(heading='north', verbose=True)),
+                                objects = [(Wumpus(),(1,3)),
+                                          (Pit(),(3,3)),
+                                          (Pit(),(3,1)),
+                                          (Gold(),(2,3))],
+                                width = 4, height = 4, entrance = (1,1),
+                                trace=False)
+            self.run()
 
     def to_string(self):
         s = "Environment width={0}, height={1}\n".format(self.width, self.height)
@@ -380,10 +391,18 @@ def with_manual_program(agent):
     
     def getQValue(state, action):
         return qlearning.qValues[(state, action)]
-    def getLegalActions(state):
-        return ['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Climb', 'Shoot', 'Wait']
-    def computeValueFromQValues(state):
-        possibleActions = getLegalActions(state)
+    def getLegalActions(state,percept):
+        # percept = ['Stench', 'Breeze', 'Glitter', 'Bump', 'Scream']
+        # return ['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Climb', 'Shoot', 'Wait']
+        if percept[2]:
+            return ['Grab']
+        if agent.has_gold and state[0] == 1 and state[1] == 1:
+            ['Climb']
+        if agent.has_arrow:
+            return ['TurnRight', 'TurnLeft', 'Forward', 'Shoot']
+        return ['TurnRight', 'TurnLeft', 'Forward']
+    def computeValueFromQValues(state, percept):
+        possibleActions = getLegalActions(state, percept)
         if possibleActions:
             maxv = float("-inf")
             for action in possibleActions:
@@ -392,8 +411,8 @@ def with_manual_program(agent):
                     maxv = q
             return maxv
         return 0.0   
-    def computeActionFromQValues(state):
-        possibleActions = getLegalActions(state)
+    def computeActionFromQValues(state, percept):
+        possibleActions = getLegalActions(state, percept)
         if possibleActions:
             maxv = float("-inf")
             bestAction = None
@@ -404,18 +423,18 @@ def with_manual_program(agent):
                     bestAction = action
             return bestAction
         return None
-    def getAction(state):
+    def getAction(state, percept):
         # Pick Action
-        possibleActions = getLegalActions(state)
+        possibleActions = getLegalActions(state, percept)
         action = None
         if possibleActions:
             if util.flipCoin(qlearning.epsilon) == True:
                 action = random.choice(possibleActions)
             else:
-                action = getPolicy(state)
+                action = getPolicy(state, percept)
         return action
-    def update(state, action, nextState, reward):
-        possibleActions = getLegalActions(nextState)
+    def update(state, action, nextState, reward, percept):
+        possibleActions = getLegalActions(nextState, percept)
         R = reward
         if possibleActions:
             Q = []
@@ -424,10 +443,10 @@ def with_manual_program(agent):
             R = reward + qlearning.discount * max(Q)
         qlearning.qValues[(state, action)] = getQValue(state, action) + qlearning.alpha * (R - getQValue(state, action))
 
-    def getPolicy(state):
-        return computeActionFromQValues(state)
-    def getValue(state):
-        return computeValueFromQValues(state)
+    def getPolicy(state, percept):
+        return computeActionFromQValues(state, percept)
+    def getValue(state, percept):
+        return computeValueFromQValues(state, percept)
     def getNextState(state, action):
         if action == 'Forward':
             increment = [(0, 1), (-1, 0), (0, -1), (1, 0)]
@@ -438,30 +457,34 @@ def with_manual_program(agent):
         elif action == 'TurnLeft':
             return (state[0], state[1], (state[2] + 1) % 4)
         return state
+    def isInTraining(episode_count):
+        if episode_count <= qlearning.numTraining:
+            return True
+        return False
 
     def manual_program(percept):
         print "[{0}] You perceive: {1}".format(agent.time,agent.pretty_percept_vector(percept))
         action = None
         
-        while not action:
-            qlearning.state = (agent.location[0], agent.location[1], agent.heading)
-            print('state' + str(qlearning.state))
-            current_score = agent.performance_measure
-            reward = current_score - qlearning.previous_score
-            print('current ' + str(current_score))
-            print('previous ' + str(qlearning.previous_score))
-            qlearning.previous_score = current_score
-            print('reward' + str(reward))
-            action = random.choice(actions)
-            next_state = getNextState(qlearning.state, action)
-            update(qlearning.state, action, next_state, reward)
-            # print('agent state' + str(state))
-            print('policy')
-            print(qlearning.qValues)
-            print('....................................')
-            # print(action)
-            # return getPolicy(qlearning.state)
-            return getPolicy(qlearning.state)
+        # while not action:
+        qlearning.state = (agent.location[0], agent.location[1], agent.heading)
+        print('state' + str(qlearning.state))
+        current_score = agent.performance_measure
+        reward = current_score - qlearning.previous_score
+        print('current ' + str(current_score))
+        print('previous ' + str(qlearning.previous_score))
+        qlearning.previous_score = current_score
+        print('reward' + str(reward))
+        # action = random.choice(actions)
+        action = getAction(qlearning.state, percept)
+        next_state = getNextState(qlearning.state, action)
+        update(qlearning.state, action, next_state, reward, percept)
+        # print('policy')
+        # print(qlearning.qValues)
+        print('....................................')
+        print(action)
+        # return getPolicy(qlearning.state)
+        return action
         #     val = raw_input("Enter Action ('?' for list of commands): ")
         #     val = val.strip()
         #     if val in helping:
@@ -855,7 +878,8 @@ def run_command(options):
             s = world_scenario_manual_from_layout(options.layout)
         else:
             s = wscenario_4x4_manual()
-    s.run()
+    # s.run()
+    s.custom_run()
 
 #-------------------------------------------------------------------------------
 
