@@ -159,7 +159,7 @@ class WumpusWorldScenario(object):
             self.step()
     
     # to run multiple episodes in the wumpus world
-    def custom_run(self, training = 10):
+    def custom_run(self, training = 101):
         f = open("policy.txt", 'w')
         for num_run in range(training):
             self.__init__(agent = with_manual_program(Explorer(heading='north', verbose=True)),
@@ -373,6 +373,7 @@ class qlearning():
     gamma = 0.8
     alpha = 0.2
     numTraining = 100
+    episode_count = 0
     discount = float(gamma)
 
 def with_manual_program(agent):
@@ -403,11 +404,13 @@ def with_manual_program(agent):
         # return ['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Climb', 'Shoot', 'Wait']
         if percept[2]:
             return ['Grab']
-        # if agent.has_gold and state[0] == 1 and state[1] == 1:
-            # ['Climb']
+        if agent.has_gold and state[0] == 1 and state[1] == 1:
+            return ['Climb']
+        if percept[3]:
+            return ['TurnRight', 'TurnLeft']
         if agent.has_arrow:
-            return ['TurnRight', 'TurnLeft', 'Forward', 'Climb', 'Shoot']
-        return ['TurnRight', 'TurnLeft', 'Forward', 'Climb']
+            return ['TurnRight', 'TurnLeft', 'Forward', 'Shoot']
+        return ['TurnRight', 'TurnLeft', 'Forward']
     def computeValueFromQValues(state, percept):
         possibleActions = getLegalActions(state, percept)
         if possibleActions:
@@ -459,6 +462,10 @@ def with_manual_program(agent):
             # if forward state in allowed state then only return next state else same state
             increment = [(0, 1), (-1, 0), (0, -1), (1, 0)]
             x, y = increment[state[2]]
+            if (state[2] == 1 and state[0] == 0) or (state[2] == 3 and state[0] == agent.width):
+                x = 0       
+            if (state[2] == 2 and state[1] == 0) or (state[2] == 0 and state[1] == agent.height):
+                y = 0       
             return (state[0] + x, state[1] + y, state[2])
         elif action == 'TurnRight':
             return (state[0], state[1], (state[2] - 1) % 4)
@@ -473,45 +480,26 @@ def with_manual_program(agent):
     def manual_program(percept):
         print "[{0}] You perceive: {1}".format(agent.time,agent.pretty_percept_vector(percept))
         action = None
-        
+        qlearning.episode_count += 1
         # while not action:
         qlearning.state = (agent.location[0], agent.location[1], agent.heading)
         print('state' + str(qlearning.state))
         current_score = agent.performance_measure
         reward = current_score - qlearning.previous_score
-        print('current ' + str(current_score))
-        print('previous ' + str(qlearning.previous_score))
+        # print('current ' + str(current_score))
+        # print('previous ' + str(qlearning.previous_score))
         qlearning.previous_score = current_score
         print('reward' + str(reward))
         # action = random.choice(actions)
-        action = getAction(qlearning.state, percept)
-        next_state = getNextState(qlearning.state, action)
-        update(qlearning.state, action, next_state, reward, percept)
-        # print('policy')
-        # print(qlearning.qValues)
+        if isInTraining(qlearning.episode_count):
+            action = random.choice(actions)
+            next_state = getNextState(qlearning.state, action)
+            update(qlearning.state, action, next_state, reward, percept)
+        else:
+            action = getAction(qlearning.state, percept)
         print('....................................')
         print(action)
-        # return getPolicy(qlearning.state)
         return action
-        #     val = raw_input("Enter Action ('?' for list of commands): ")
-        #     val = val.strip()
-        #     if val in helping:
-        #         print
-        #         show_commands()
-        #         print
-        #     elif val in stopping:
-        #         action = 'Stop'
-        #     elif val == 'env':
-        #         print
-        #         print "Current wumpus environment:"
-        #         print agent.env.to_string()
-        #     elif val in actions:
-        #         action = val
-        #     else:
-        #         print "'{0}' is an invalid command;".format(val) \
-        #               + " try again (enter '?' for list of commands)"
-        # agent.time += 1
-        # return action
 
     agent.program = manual_program
     return agent
