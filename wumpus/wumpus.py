@@ -159,8 +159,7 @@ class WumpusWorldScenario(object):
             self.step()
     
     # to run multiple episodes in the wumpus world
-    def custom_run(self, training = 101):
-        f = open("policy.txt", 'w')
+    def custom_run(self, training = 100):
         for num_run in range(training):
             self.__init__(agent = with_manual_program(Explorer(heading='north', verbose=True)),
                                 objects = [(Wumpus(),(1,3)),
@@ -170,7 +169,9 @@ class WumpusWorldScenario(object):
                                 width = 4, height = 4, entrance = (1,1),
                                 trace=False)
             self.run()
+        f = open("policy.txt", 'w')
         f.write(str(qlearning.qValues))
+        f.close()
 
     def to_string(self):
         s = "Environment width={0}, height={1}\n".format(self.width, self.height)
@@ -367,6 +368,7 @@ class qlearning():
     # state[2] = 2 --> south
     # state[2] = 3 --> east
     previous_score = 0
+    previous_action = None
     qValues = util.Counter()
     state = []
     epsilon = 0.05
@@ -479,26 +481,39 @@ def with_manual_program(agent):
 
     def manual_program(percept):
         print "[{0}] You perceive: {1}".format(agent.time,agent.pretty_percept_vector(percept))
-        action = None
-        qlearning.episode_count += 1
-        # while not action:
+        # action = None
+        previous_action = None
+        
+        # qlearning.episode_count += 1
+        # print('qsc' + str(qlearning.episode_count))
         qlearning.state = (agent.location[0], agent.location[1], agent.heading)
-        print('state' + str(qlearning.state))
         current_score = agent.performance_measure
         reward = current_score - qlearning.previous_score
-        # print('current ' + str(current_score))
-        # print('previous ' + str(qlearning.previous_score))
+        print('state: ' + str(qlearning.state))
+        print('current: ' + str(current_score))
+        print('previous: ' + str(qlearning.previous_score))
+        print('reward: ' + str(reward))
+
+        # print(qlearning.qValues)        
+        
         qlearning.previous_score = current_score
-        print('reward' + str(reward))
+        
         # action = random.choice(actions)
-        if isInTraining(qlearning.episode_count):
-            action = random.choice(actions)
-            next_state = getNextState(qlearning.state, action)
-            update(qlearning.state, action, next_state, reward, percept)
-        else:
-            action = getAction(qlearning.state, percept)
-        print('....................................')
+        # if isInTraining(qlearning.episode_count):
+            # action = random.choice(getLegalActions(qlearning.state,percept))
+            # if (qlearning.episode_count > 1):
+        
+        action = getAction(qlearning.state, percept)
+        next_state = getNextState(qlearning.state, action)
+        if qlearning.previous_action != None:
+            print("update input"+ str(qlearning.previous_action) + ' '+ str(next_state) + ' '+ str(reward))
+            update(qlearning.state, qlearning.previous_action, next_state, reward, percept)
+        qlearning.previous_action = action
+        # else:
+        # action = getAction(qlearning.state, percept)
         print(action)
+        print('....................................')
+        # val = raw_input("Debug  :) ")
         return action
 
     agent.program = manual_program
