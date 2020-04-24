@@ -214,6 +214,9 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
                     break
                 self.step()
             self.agent.reset()
+            self.objects[0][0].alive = True
+            print "dbg1"
+            print self.objects
             self.env = self.build_world(self.width, self.height, self.entrance, self.agent, self.objects)
 
         print "AFTER POLICY GENERATION"
@@ -255,14 +258,14 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
 # specifying objects as list
 
 def wscenario_4x4_QLearningWumpusAgent():
-    numTraining = 1000
+    numTraining = 100
     return WumpusWorldQLearningScenario(agent = QLearningWumpusAgent('north', verbose=True, numTraining=numTraining),
                                objects = [(Wumpus(),(1,3)),
                                           (Pit(),(3,3)),
                                           (Pit(),(3,1)),
                                           (Gold(),(2,3))],
                                width = 4, height = 4, entrance = (1,1),
-                               trace=True, numTraining=numTraining)
+                               trace=False, numTraining=numTraining)
 
 #-------------------------------------------------------------------------------
 

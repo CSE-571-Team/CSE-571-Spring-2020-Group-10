@@ -113,7 +113,13 @@ class ReinforcementAgent(ValueEstimationAgent):
           state. This is what you should use to
           obtain legal actions for a state
         """
-        return ['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Shoot', 'Climb', 'Wait']
+        legal_actions = ['TurnRight', 'TurnLeft', 'Forward', 'Grab']
+        if self.has_arrow:
+            legal_actions.append('Shoot')
+        if self.has_gold == True and self.initial_location[0] == state[0] and self.initial_location[1] == state[1]:
+            legal_actions.append('Climb')
+        return legal_actions
+        # return ['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Shoot', 'Climb']
         # return self.actionFn(state)
 
     def getLegalActionsWithPercept(self, state, percept):
@@ -122,7 +128,7 @@ class ReinforcementAgent(ValueEstimationAgent):
         legal_actions = ['TurnRight', 'TurnLeft', 'Forward']
         if self.has_arrow:
             legal_actions.append('Shoot')
-        if self.initial_location[0] == state[0] and self.initial_location[1] == state[1]:
+        if self.has_gold == True and self.initial_location[0] == state[0] and self.initial_location[1] == state[1]:
             legal_actions.append('Climb')
         return legal_actions
 
@@ -164,7 +170,7 @@ class ReinforcementAgent(ValueEstimationAgent):
     def isInTesting(self):
         return not self.isInTraining()
 
-    def __init__(self, actionFn = None, numTraining=100, epsilon=0.5, alpha=0.5, gamma=1):
+    def __init__(self, actionFn = None, numTraining=100, epsilon=0.95, alpha=0.5, gamma=1):
         """
         actionFn: Function which takes a state and returns the list of legal actions
         alpha    - learning rate

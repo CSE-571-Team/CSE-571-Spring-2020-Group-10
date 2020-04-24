@@ -514,6 +514,7 @@ class QLearningWumpusAgent(QLearningAgent, Explorer):
         if self.previous_state != None:
             self.update(state, self.previous_action)
         self.previous_action = QLearningAgent.getAction(self, state, percept)
+        print self.previous_action
         return self.previous_action
     
     def update(self, state, previous_action):
