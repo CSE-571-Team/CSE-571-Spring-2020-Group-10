@@ -514,11 +514,14 @@ class QLearningWumpusAgent(QLearningAgent, Explorer):
         if self.previous_state != None:
             self.update(state, self.previous_action)
         self.previous_action = QLearningAgent.getAction(self, state, percept)
+        self.previous_state = state
         print self.previous_action
+        # val = raw_input('Debug :')
         return self.previous_action
     
     def update(self, state, previous_action):
         reward = self.performance_measure - self.previous_score
         self.previous_score = self.performance_measure
+        print 'update ' + str(self.previous_state) + ' ' + str(previous_action) + ' ' + str(state) + ' ' + str(reward)
         QLearningAgent.update(self, self.previous_state, previous_action, state, reward)
-        self.previous_state = state
+        
