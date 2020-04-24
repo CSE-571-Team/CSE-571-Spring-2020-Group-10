@@ -113,7 +113,8 @@ class ReinforcementAgent(ValueEstimationAgent):
           state. This is what you should use to
           obtain legal actions for a state
         """
-        return self.actionFn(state)
+        return ['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Shoot', 'Climb', 'Wait']
+        # return self.actionFn(state)
 
     def getLegalActionsWithPercept(self, state, percept):
         if percept[2]: # glitter
@@ -171,9 +172,9 @@ class ReinforcementAgent(ValueEstimationAgent):
         gamma    - discount factor
         numTraining - number of training episodes, i.e. no learning after these many episodes
         """
-        if actionFn == None:
-            actionFn = lambda state: state.getLegalActions()
-        self.actionFn = actionFn
+        # if actionFn == None:
+        #     actionFn = lambda state: state.getLegalActions()
+        # self.actionFn = actionFn
         self.episodesSoFar = 0
         self.accumTrainRewards = 0.0
         self.accumTestRewards = 0.0

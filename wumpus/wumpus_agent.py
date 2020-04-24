@@ -497,12 +497,12 @@ class QLearningWumpusAgent(QLearningAgent, Explorer):
         args['numTraining'] = numTraining
         QLearningAgent.__init__(self, **args)
         Explorer.__init__(self, program = self.agent_program, heading = 'north', environment = environment, verbose = True)
-        self.previous_score = None
+        self.previous_score = 0
         self.previous_state = None
 
     def reset(self):
         Explorer.reset(self)
-        self.previous_score = None
+        self.previous_score = 0
         self.has_gold = False
         self.has_arrow = True
         self.performance_measure = 0
