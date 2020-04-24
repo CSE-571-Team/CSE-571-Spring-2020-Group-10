@@ -169,9 +169,12 @@ class WumpusWorldScenario(object):
                                 width = 4, height = 4, entrance = (1,1),
                                 trace=False)
             self.run()
-        f = open("policy.txt", 'w')
-        f.write(str(qlearning.qValues))
-        f.close()
+        f1 = open("policy_withoutGold.txt", 'w')
+        f2 = open("policy_withGold.txt", 'w')
+        f1.write(str(qlearning.qValues_withoutGold))
+        f2.write(str(qlearning.qValues_withGold))
+        f1.close()
+        f2.close()
 
     def to_string(self):
         s = "Environment width={0}, height={1}\n".format(self.width, self.height)
@@ -370,8 +373,10 @@ class qlearning():
     previous_score = 0
     previous_action = None
     qValues = util.Counter()
+    qValues_withoutGold = util.Counter()
+    qValues_withGold = util.Counter()
     state = []
-    epsilon = 0.05
+    epsilon = 0.2
     gamma = 0.8
     alpha = 0.2
     numTraining = 100
@@ -400,7 +405,10 @@ def with_manual_program(agent):
         print "   Enter 'env' to display current wumpus environment"
     
     def getQValue(state, action):
-        return qlearning.qValues[(state, action)]
+        if agent.has_gold:
+            return qlearning.qValues_withGold[(state, action)]
+        else:
+            return qlearning.qValues_withoutGold[(state, action)]
     def getLegalActions(state,percept):
         # percept = ['Stench', 'Breeze', 'Glitter', 'Bump', 'Scream']
         # return ['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Climb', 'Shoot', 'Wait']
@@ -453,7 +461,10 @@ def with_manual_program(agent):
             for a in possibleActions:
                 Q.append(getQValue(nextState, a))
             R = reward + qlearning.discount * max(Q)
-        qlearning.qValues[(state, action)] = getQValue(state, action) + qlearning.alpha * (R - getQValue(state, action))
+        if agent.has_gold:
+            qlearning.qValues_withGold[(state, action)] = getQValue(state, action) + qlearning.alpha * (R - getQValue(state, action))
+        else:
+            qlearning.qValues_withoutGold[(state, action)] = getQValue(state, action) + qlearning.alpha * (R - getQValue(state, action))
 
     def getPolicy(state, percept):
         return computeActionFromQValues(state, percept)
@@ -508,12 +519,17 @@ def with_manual_program(agent):
         if qlearning.previous_action != None:
             print("update input"+ str(qlearning.previous_action) + ' '+ str(next_state) + ' '+ str(reward))
             update(qlearning.state, qlearning.previous_action, next_state, reward, percept)
-        qlearning.previous_action = action
+        
         # else:
         # action = getAction(qlearning.state, percept)
         print(action)
         print('....................................')
         # val = raw_input("Debug  :) ")
+
+        if action == 'Forward':
+            if util.flipCoin(0.2):
+                action = random.choice(['LeftTurn', 'RightTurn', 'Grab', 'Climb', 'Wait', 'Shoot'])
+        qlearning.previous_action = action
         return action
 
     agent.program = manual_program
