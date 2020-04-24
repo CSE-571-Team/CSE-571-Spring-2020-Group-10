@@ -497,41 +497,27 @@ class QLearningWumpusAgent(QLearningAgent, Explorer):
         args['numTraining'] = numTraining
         QLearningAgent.__init__(self, **args)
         Explorer.__init__(self, program = self.agent_program, heading = 'north', environment = environment, verbose = True)
-        self.previous_score = 0
-        self.current_score = 0
-        self.action = 'Forward'
-        # self.state = (WumpusEnvironment.agent.location , WumpusEnvironment.heading)
+        self.previous_score = None
+        self.previous_state = None
 
     def reset(self):
         Explorer.reset(self)
-        self.previous_score = 0
-        self.current_score = 0
-        # self.policy = self.train_qlearning()
+        self.previous_score = None
+        self.has_gold = False
+        self.has_arrow = True
+        self.performance_measure = 0
+        self.previous_state = None
         self.action = 'Forward'
 
-    # def getAction(self):
-    #     action = QLearningAgent.getAction(self, self.state)
-    #     # QLearningAgent.doAction(state, action)
-    #     return action
-
-    # def train_qlearning(self):
-    #     # if(Explorer.has_arrow()):
-    #     # action = ['Forward', 'TurnLeft', 'TurnRight']
-    #     # else:
-    #     # action = ['Forward', 'TurnLeft', 'TurnRight']
-        
-        
-
-    #     action = self.getAction(self, self.state)
-    #     nextState = PlanRouteProblem.result(self, self.state, action)
-        
-    #     self.current_score = Explorer.performance_measure()
-    #     reward = self.current_score - self.previous_score
-    #     self.previous_score = self.current_score
-    #     QLearningAgent.update(self, self.state, action, nextState, reward)
-        
-    #     return policy
-
     def agent_program(self, percept):
-        # action = QLearningAgent.getPolicy(self, self.state)
-        return self.action
+        state = (self.location[0], self.location[1], self.heading, self.has_gold)
+        if self.previous_state != None:
+            self.update(state, self.previous_action)
+        self.previous_action = QLearningAgent.getAction(self, state, percept)
+        return self.previous_action
+    
+    def update(self, state, previous_action):
+        reward = self.performance_measure - self.previous_score
+        self.previous_score = self.performance_measure
+        QLearningAgent.update(self, self.previous_state, previous_action, state, reward)
+        self.previous_state = state

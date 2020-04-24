@@ -115,6 +115,16 @@ class ReinforcementAgent(ValueEstimationAgent):
         """
         return self.actionFn(state)
 
+    def getLegalActionsWithPercept(self, state, percept):
+        if percept[2]: # glitter
+            return ['Grab']
+        legal_actions = ['TurnRight', 'TurnLeft', 'Forward']
+        if self.has_arrow:
+            legal_actions.append('Shoot')
+        if self.initial_location[0] == state[0] and self.initial_location[1] == state[1]:
+            legal_actions.append('Climb')
+        return legal_actions
+
     def observeTransition(self, state,action,nextState,deltaReward):
         """
             Called by environment to inform agent that a transition has

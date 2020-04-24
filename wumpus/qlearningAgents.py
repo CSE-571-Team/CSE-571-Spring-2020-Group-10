@@ -93,7 +93,7 @@ class QLearningAgent(ReinforcementAgent):
             return bestAction
         return None
 
-    def getAction(self, state):
+    def getAction(self, state, percept):
         """
           Compute the action to take in the current state.  With
           probability self.epsilon, we should take a random action and
@@ -104,7 +104,7 @@ class QLearningAgent(ReinforcementAgent):
           HINT: To pick randomly from a list, use random.choice(list)
         """
         # Pick Action
-        possibleActions = self.getLegalActions(state)
+        possibleActions = self.getLegalActionsWithPercept(state, percept)
         action = None
         "*** YOUR CODE HERE ***"
         if possibleActions:

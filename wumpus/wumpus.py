@@ -169,9 +169,10 @@ class WumpusWorldScenario(object):
         print self.env.to_string()
 
 class WumpusWorldQLearningScenario(WumpusWorldScenario):
-    # def __init__(self, layout_file=None, agent=None, objects=None,
-    #              width=None, height=None, entrance=None, trace=True):
-    #     super(WumpusWorldQLearningScenario, self).__init__(layout_file, agent, objects, width, height, entrance, trace)
+    def __init__(self, layout_file=None, agent=None, objects=None,
+                 width=None, height=None, entrance=None, trace=True, numTraining=100):
+        self.numTraining = numTraining
+        super(WumpusWorldQLearningScenario, self).__init__(layout_file, agent, objects, width, height, entrance, trace)
 
     def build_world(self, width, height, entrance, agent, objects):
         """
@@ -188,7 +189,34 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
             env.add_thing(obj, loc)
         return env
 
-    def run(self, steps = 1000, training_num = 1000):
+    def run(self, steps = 1000):
+        for _ in range(self.numTraining):
+            print "TRAINING"
+            for step in range(steps):
+                print self.env.to_string()
+                if self.env.is_done():
+                    state = (self.agent.location[0], self.agent.location[1], self.agent.heading, self.agent.has_gold)
+                    self.agent.update(state, self.agent.previous_action)
+                    print "DONE."
+                    slist = []
+                    if len(self.env.agents) > 0:
+                        slist += ['Final Scores:']
+                    for agent in self.env.agents:
+                        slist.append(' {0}={1}'.format(agent, agent.performance_measure))
+                        if agent.verbose:
+                            if hasattr(agent, 'number_of_clauses_over_epochs'):
+                                print "number_of_clauses_over_epochs:" \
+                                    +" {0}".format(agent.number_of_clauses_over_epochs)
+                            if hasattr(agent, 'belief_loc_query_times'):
+                                print "belief_loc_query_times:" \
+                                    +" {0}".format(agent.belief_loc_query_times)
+                    print ''.join(slist)
+                    break
+                self.step()
+            self.agent.reset()
+            self.env = self.build_world(self.width, self.height, self.entrance, self.agent, self.objects)
+
+        print "AFTER POLICY GENERATION"
         print self.env.to_string()
         for step in range(steps):
             if self.env.is_done():
@@ -227,13 +255,14 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
 # specifying objects as list
 
 def wscenario_4x4_QLearningWumpusAgent():
-    return WumpusWorldQLearningScenario(agent = QLearningWumpusAgent('north', verbose=True),
+    numTraining = 1000
+    return WumpusWorldQLearningScenario(agent = QLearningWumpusAgent('north', verbose=True, numTraining=numTraining),
                                objects = [(Wumpus(),(1,3)),
                                           (Pit(),(3,3)),
                                           (Pit(),(3,1)),
                                           (Gold(),(2,3))],
                                width = 4, height = 4, entrance = (1,1),
-                               trace=True)
+                               trace=True, numTraining=numTraining)
 
 #-------------------------------------------------------------------------------
 
