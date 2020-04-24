@@ -146,6 +146,8 @@ class WumpusWorldScenario(object):
                 if len(self.env.agents) > 0:
                     slist += ['Final Scores:']
                 for agent in self.env.agents:
+                    # reward = agent.performance_measure - qlearning.previous_score
+                    # update(qlearning.previous_state, qlearning.previous_action, None, reward, None)
                     slist.append(' {0}={1}'.format(agent, agent.performance_measure))
                     if agent.verbose:
                         if hasattr(agent, 'number_of_clauses_over_epochs'):
@@ -159,22 +161,23 @@ class WumpusWorldScenario(object):
             self.step()
     
     # to run multiple episodes in the wumpus world
-    def custom_run(self, training = 100):
+    def custom_run(self, training = 10):
         for num_run in range(training):
             self.__init__(agent = with_manual_program(Explorer(heading='north', verbose=True)),
-                                objects = [(Wumpus(),(1,3)),
+                                objects = [
+                                        (Wumpus(),(1,3)),
                                           (Pit(),(3,3)),
                                           (Pit(),(3,1)),
                                           (Gold(),(2,3))],
                                 width = 4, height = 4, entrance = (1,1),
                                 trace=False)
             self.run()
-        f1 = open("policy_withoutGold.txt", 'w')
-        f2 = open("policy_withGold.txt", 'w')
-        f1.write(str(qlearning.qValues_withoutGold))
-        f2.write(str(qlearning.qValues_withGold))
-        f1.close()
-        f2.close()
+        # f1 = open("policy_withoutGold.txt", 'w')
+        f = open("policy.txt", 'w')
+        f.write(str(qlearning.qValues))
+        # f2.write(str(qlearning.qValues_withGold))
+        # f1.close()
+        f.close()
 
     def to_string(self):
         s = "Environment width={0}, height={1}\n".format(self.width, self.height)
@@ -371,12 +374,13 @@ class qlearning():
     # state[2] = 2 --> south
     # state[2] = 3 --> east
     previous_score = 0
+    previous_state = []
     previous_action = None
     qValues = util.Counter()
-    qValues_withoutGold = util.Counter()
-    qValues_withGold = util.Counter()
+    # qValues_withoutGold = util.Counter()
+    # qValues_withGold = util.Counter()
     state = []
-    epsilon = 0.2
+    epsilon = 0.1
     gamma = 0.8
     alpha = 0.2
     numTraining = 100
@@ -405,10 +409,7 @@ def with_manual_program(agent):
         print "   Enter 'env' to display current wumpus environment"
     
     def getQValue(state, action):
-        if agent.has_gold:
-            return qlearning.qValues_withGold[(state, action)]
-        else:
-            return qlearning.qValues_withoutGold[(state, action)]
+            return qlearning.qValues[(state, action)]
     def getLegalActions(state,percept):
         # percept = ['Stench', 'Breeze', 'Glitter', 'Bump', 'Scream']
         # return ['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Climb', 'Shoot', 'Wait']
@@ -416,11 +417,12 @@ def with_manual_program(agent):
             return ['Grab']
         if agent.has_gold and state[0] == 1 and state[1] == 1:
             return ['Climb']
-        if percept[3]:
-            return ['TurnRight', 'TurnLeft']
+        # if percept[3]:
+        #     return ['TurnRight', 'TurnLeft']
+        action = ['TurnRight', 'TurnLeft', 'Forward']
         if agent.has_arrow:
-            return ['TurnRight', 'TurnLeft', 'Forward', 'Shoot']
-        return ['TurnRight', 'TurnLeft', 'Forward']
+            action.append('Shoot')
+        return action
     def computeValueFromQValues(state, percept):
         possibleActions = getLegalActions(state, percept)
         if possibleActions:
@@ -461,10 +463,7 @@ def with_manual_program(agent):
             for a in possibleActions:
                 Q.append(getQValue(nextState, a))
             R = reward + qlearning.discount * max(Q)
-        if agent.has_gold:
-            qlearning.qValues_withGold[(state, action)] = getQValue(state, action) + qlearning.alpha * (R - getQValue(state, action))
-        else:
-            qlearning.qValues_withoutGold[(state, action)] = getQValue(state, action) + qlearning.alpha * (R - getQValue(state, action))
+        qlearning.qValues[(state, action)] = getQValue(state, action) + qlearning.alpha * (R - getQValue(state, action))
 
     def getPolicy(state, percept):
         return computeActionFromQValues(state, percept)
@@ -497,7 +496,7 @@ def with_manual_program(agent):
         
         # qlearning.episode_count += 1
         # print('qsc' + str(qlearning.episode_count))
-        qlearning.state = (agent.location[0], agent.location[1], agent.heading)
+        qlearning.state = (agent.location[0], agent.location[1], agent.heading, agent.has_gold)
         current_score = agent.performance_measure
         reward = current_score - qlearning.previous_score
         print('state: ' + str(qlearning.state))
@@ -509,16 +508,17 @@ def with_manual_program(agent):
         
         qlearning.previous_score = current_score
         
-        # action = random.choice(actions)
-        # if isInTraining(qlearning.episode_count):
-            # action = random.choice(getLegalActions(qlearning.state,percept))
-            # if (qlearning.episode_count > 1):
         
         action = getAction(qlearning.state, percept)
         next_state = getNextState(qlearning.state, action)
         if qlearning.previous_action != None:
-            print("update input"+ str(qlearning.previous_action) + ' '+ str(next_state) + ' '+ str(reward))
-            update(qlearning.state, qlearning.previous_action, next_state, reward, percept)
+            if len(qlearning.previous_state) != 0:
+                if current_score != 0:
+                    print("update input "+ str(qlearning.previous_state) + ' ' + str(qlearning.previous_action) + ' '+ str(qlearning.state) + ' '+ str(reward))
+                    update(qlearning.previous_state, qlearning.previous_action, qlearning.state, reward, percept)
+                else:
+                    print("update input "+ str(qlearning.previous_state) + ' ' + str(qlearning.previous_action) + ' '+ str(qlearning.state) + ' '+ str(-1000))
+                    update(qlearning.previous_state, qlearning.previous_action, qlearning.state, -1000, percept)
         
         # else:
         # action = getAction(qlearning.state, percept)
@@ -528,7 +528,8 @@ def with_manual_program(agent):
 
         if action == 'Forward':
             if util.flipCoin(0.2):
-                action = random.choice(['LeftTurn', 'RightTurn', 'Grab', 'Climb', 'Wait', 'Shoot'])
+                action = random.choice(['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Climb', 'Shoot', 'Wait'])
+        qlearning.previous_state = qlearning.state
         qlearning.previous_action = action
         return action
 
