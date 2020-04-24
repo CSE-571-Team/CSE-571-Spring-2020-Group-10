@@ -113,23 +113,26 @@ class ReinforcementAgent(ValueEstimationAgent):
           state. This is what you should use to
           obtain legal actions for a state
         """
-        legal_actions = ['TurnRight', 'TurnLeft', 'Forward', 'Grab']
-        if self.has_arrow:
-            legal_actions.append('Shoot')
-        if self.has_gold == True and self.initial_location[0] == state[0] and self.initial_location[1] == state[1]:
-            legal_actions.append('Climb')
+        legal_actions = ['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Shoot', 'Climb']
+
+        # legal_actions = ['TurnRight', 'TurnLeft', 'Forward', 'Grab']
+        # if self.has_arrow:
+            # legal_actions.append('Shoot')
+        # if self.has_gold == True and self.initial_location[0] == state[0] and self.initial_location[1] == state[1]:
+            # legal_actions.append('Climb')
         return legal_actions
         # return ['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Shoot', 'Climb']
         # return self.actionFn(state)
 
     def getLegalActionsWithPercept(self, state, percept):
-        if percept[2]: # glitter
-            return ['Grab']
-        legal_actions = ['TurnRight', 'TurnLeft', 'Forward']
-        if self.has_arrow:
-            legal_actions.append('Shoot')
-        if self.has_gold == True and self.initial_location[0] == state[0] and self.initial_location[1] == state[1]:
-            legal_actions.append('Climb')
+        # if percept[2]: # glitter
+            # return ['Grab']
+        # legal_actions = ['TurnRight', 'TurnLeft', 'Forward']
+        legal_actions = ['TurnRight', 'TurnLeft', 'Forward', 'Grab', 'Shoot', 'Climb']
+        # if self.has_arrow:
+            # legal_actions.append('Shoot')
+        # if self.has_gold == True and self.initial_location[0] == state[0] and self.initial_location[1] == state[1]:
+            # legal_actions.append('Climb')
         return legal_actions
 
     def observeTransition(self, state,action,nextState,deltaReward):

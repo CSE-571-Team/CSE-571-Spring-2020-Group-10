@@ -263,7 +263,7 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
 # specifying objects as list
 
 def wscenario_4x4_QLearningWumpusAgent():
-    numTraining = 1000
+    numTraining = 10000
     return WumpusWorldQLearningScenario(agent = QLearningWumpusAgent('north', verbose=True, numTraining=numTraining),
                                objects = [(Wumpus(),(1,3)),
                                           (Pit(),(3,3)),
