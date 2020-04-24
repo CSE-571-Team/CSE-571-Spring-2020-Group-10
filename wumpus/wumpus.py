@@ -168,7 +168,46 @@ class WumpusWorldScenario(object):
         print self.to_string()
         print self.env.to_string()
 
+class WumpusWorldQLearningScenario(WumpusWorldScenario):
+    # def __init__(self, layout_file=None, agent=None, objects=None,
+    #              width=None, height=None, entrance=None, trace=True):
+    #     super(WumpusWorldQLearningScenario, self).__init__(layout_file, agent, objects, width, height, entrance, trace)
 
+    def build_world(self, width, height, entrance, agent, objects):
+        """
+        Create a WumpusEnvironment with dimensions width,height
+        Set the environment entrance
+        objects := [(<wumpus_environment_object>, <location: (<x>,<y>) >, ...]
+        """
+        env = WumpusQLearningEnvironment(width, height, entrance)
+        if self.trace:
+            agent = wumpus_environment.TraceAgent(agent)
+        agent.register_environment(env)
+        env.add_thing(agent, env.entrance)
+        for (obj, loc) in objects:
+            env.add_thing(obj, loc)
+        return env
+
+    def run(self, steps = 1000, training_num = 1000):
+        print self.env.to_string()
+        for step in range(steps):
+            if self.env.is_done():
+                print "DONE."
+                slist = []
+                if len(self.env.agents) > 0:
+                    slist += ['Final Scores:']
+                for agent in self.env.agents:
+                    slist.append(' {0}={1}'.format(agent, agent.performance_measure))
+                    if agent.verbose:
+                        if hasattr(agent, 'number_of_clauses_over_epochs'):
+                            print "number_of_clauses_over_epochs:" \
+                                  +" {0}".format(agent.number_of_clauses_over_epochs)
+                        if hasattr(agent, 'belief_loc_query_times'):
+                            print "belief_loc_query_times:" \
+                                  +" {0}".format(agent.belief_loc_query_times)
+                print ''.join(slist)
+                return
+            self.step()
 
 #-------------------------------------------------------------------------------
 
@@ -188,7 +227,7 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
 # specifying objects as list
 
 def wscenario_4x4_QLearningWumpusAgent():
-    return WumpusWorldScenario(agent = QLearningWumpusAgent('north', verbose=True),
+    return WumpusWorldQLearningScenario(agent = QLearningWumpusAgent('north', verbose=True),
                                objects = [(Wumpus(),(1,3)),
                                           (Pit(),(3,3)),
                                           (Pit(),(3,1)),
@@ -689,7 +728,7 @@ def run_command(options):
             s = world_scenario_qlearning_wumpus_agent_from_layout(options.layout)
         else:
             s = wscenario_4x4_QLearningWumpusAgent()
-    if options.hybrid:
+    elif options.hybrid:
         if options.layout:
             s = world_scenario_hybrid_wumpus_agent_from_layout(options.layout)
         else:

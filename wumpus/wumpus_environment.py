@@ -19,6 +19,7 @@
 from utils import *
 import agents
 import sys
+import random
 
 class Wumpus(agents.Thing):
 
@@ -444,3 +445,53 @@ class WumpusEnvironment(agents.XYEnvironment):
             slist.append(hline)
 
         return ''.join(slist)
+
+class WumpusQLearningEnvironment(WumpusEnvironment):
+    def __init__(self, width = 4, height = 4, entrance = (1, 1), forwardStochasticOutcome = (0.2,0.8,0.2)):
+        self.forwardStochasticOutcome = forwardStochasticOutcome
+        super(WumpusQLearningEnvironment, self).__init__(width, height, entrance)
+
+    def execute_action(self, agent, action):
+        """ Execute action taken by agent """
+        agent.bump = False
+        agent.performance_measure -= 1
+        if action == 'TurnRight':
+            agent.heading = self.turn_heading(agent.heading, -1)
+        elif action == 'TurnLeft':
+            agent.heading = self.turn_heading(agent.heading, +1)
+        elif action == 'Forward':
+            r = random.random()
+            if r <= self.forwardStochasticOutcome[0]: # left
+                self.move_to(agent, vector_add(self.heading_to_vector((agent.heading + 1)%4),
+                                           agent.location))
+            elif r <= (self.forwardStochasticOutcome[0] + self.forwardStochasticOutcome[1]): # forward
+                self.move_to(agent, vector_add(self.heading_to_vector(agent.heading),
+                                           agent.location))
+            else: # right
+                self.move_to(agent, vector_add(self.heading_to_vector((agent.heading - 1)%4),
+                                           agent.location))
+
+        elif action == 'Grab':
+            if self.some_things_at(agent.location, tclass=Gold):
+                try:
+                    gold = self.list_things_at(agent.location, tclass=Gold)[0]
+                    agent.has_gold = True
+                    self.delete_thing(gold)
+                except:
+                    print "Error: Gold should be here, but couldn't find it!"
+                    print 'All things:', self.list_things_at(agent.location)
+                    print 'Gold?:', self.list_things_at(agent.location, tclass=Gold)
+                    sys.exit(-1)
+
+        elif action == 'Climb':
+            if agent.location == self.entrance:
+                if agent.has_gold:
+                    agent.performance_measure += 1000
+                self.done = True
+        elif action == 'Shoot':
+            if agent.has_arrow:
+                agent.has_arrow = False
+                agent.performance_measure -= 10
+                self.shoot_arrow(agent)
+        elif action == 'Stop':
+            self.done = True

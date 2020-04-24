@@ -418,6 +418,20 @@ class Dirt(Thing):
     pass
 
 
+class QLearningEnvironment(XYEnvironment):
+    def execute_action(self, agent, action):
+        if action == 'Forward':
+            dirt_list = self.list_things_at(agent.location, Dirt)
+            if dirt_list != []:
+                dirt = dirt_list[0]
+                agent.performance += 100
+                self.delete_thing(dirt)
+        else:
+            super(VacuumEnvironment, self).execute_action(agent, action)
+        if action != 'NoOp':
+            agent.performance -= 1
+
+
 class VacuumEnvironment(XYEnvironment):
     """The environment of [Ex. 2.12]. Agent perceives dirty or clean,
     and bump (into obstacle) or not; 2D discrete world of unknown size;
