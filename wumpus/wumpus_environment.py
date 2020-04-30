@@ -447,7 +447,7 @@ class WumpusEnvironment(agents.XYEnvironment):
         return ''.join(slist)
 
 class WumpusQLearningEnvironment(WumpusEnvironment):
-    def __init__(self, width = 4, height = 4, entrance = (1, 1), forwardStochasticOutcome = (0.2,0.8,0.2)):
+    def __init__(self, width = 4, height = 4, entrance = (1, 1), forwardStochasticOutcome = (0.1,0.8,0.1)):
         self.forwardStochasticOutcome = forwardStochasticOutcome
         super(WumpusQLearningEnvironment, self).__init__(width, height, entrance)
 
