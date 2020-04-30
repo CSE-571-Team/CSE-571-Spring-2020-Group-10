@@ -217,7 +217,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
                             for has_gold in (True, False):
                                 newpolicy[(x, y, heading, has_gold)] = QLearningWumpusAgent.getPolicy(self.agent, (x, y, heading, has_gold))
                 for keystate in newpolicy.keys():
-                    if nt < 2000:
+                    if nt < 10000:
                         policy_match = False
                         break
 
@@ -311,7 +311,7 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
     numTraining = 10000
     alpha = 0.2
     gamma=0.8
-    epsilon=0.15
+    epsilon=0.05
     forwardStochasticOutcome = (0.1,0.8,0.1)
     maxdelta = 0.0001
     return WumpusWorldQLearningScenario(layout_file = layout_filename,
