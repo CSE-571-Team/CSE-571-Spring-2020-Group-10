@@ -275,7 +275,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
         for nar in range(100):
             for step in range(steps):
                 if self.env.is_done():
-                    print "DONE."
+                    print "DONE: " + str(nar)
                     final_scores = final_scores + self.agent.performance_measure
                     slist = []
                     if len(self.env.agents) > 0:
@@ -291,6 +291,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
                                     +" {0}".format(agent.belief_loc_query_times)
                     print ''.join(slist)
                     # return
+                    break
                 self.step()
             self.agent.reset()
             self.objects[0][0].alive = True
