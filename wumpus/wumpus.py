@@ -268,7 +268,7 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
     forwardStochasticOutcome = (0.1,0.8,0.1)
     maxdelta = 0.000001
     return WumpusWorldQLearningScenario(layout_file = layout_filename,
-                               agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining, forwardStochasticOutcome=forwardStochasticOutcome, maxdelta=maxdelta),
+                               agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining), forwardStochasticOutcome=forwardStochasticOutcome, maxdelta=maxdelta,
                                trace=False)
 
 #------------------------------------
@@ -282,7 +282,7 @@ def wscenario_4x4_QLearningWumpusAgent():
     epsilon=0.05
     forwardStochasticOutcome = (0.1,0.8,0.1)
     maxdelta = 0.000001
-    return WumpusWorldQLearningScenario(agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining, forwardStochasticOutcome=forwardStochasticOutcome, maxdelta=maxdelta),
+    return WumpusWorldQLearningScenario(agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining), forwardStochasticOutcome=forwardStochasticOutcome, maxdelta=maxdelta,
                                objects = [(Wumpus(),(1,3)),
                                           (Pit(),(3,3)),
                                           (Pit(),(3,1)),
