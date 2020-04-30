@@ -170,9 +170,11 @@ class WumpusWorldScenario(object):
 
 class WumpusWorldQLearningScenario(WumpusWorldScenario):
     def __init__(self, layout_file=None, agent=None, objects=None,
-                 width=None, height=None, entrance=None, trace=True, numTraining=100, maxdelta=0.000001):
+                 width=None, height=None, entrance=None, trace=True, numTraining=100,
+                 maxdelta=0.000001, forwardStochasticOutcome = (0.1,0.8,0.1)):
         self.numTraining = numTraining
         self.maxdelta = maxdelta
+        self.forwardStochasticOutcome = forwardStochasticOutcome
         super(WumpusWorldQLearningScenario, self).__init__(layout_file, agent, objects, width, height, entrance, trace)
 
     def build_world(self, width, height, entrance, agent, objects):
@@ -181,7 +183,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
         Set the environment entrance
         objects := [(<wumpus_environment_object>, <location: (<x>,<y>) >, ...]
         """
-        env = WumpusQLearningEnvironment(width, height, entrance)
+        env = WumpusQLearningEnvironment(width, height, entrance, forwardStochasticOutcome = self.forwardStochasticOutcome)
         if self.trace:
             agent = wumpus_environment.TraceAgent(agent)
         agent.register_environment(env)
@@ -260,9 +262,14 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
     layout_filename := name of layout file to load
     """
     numTraining = 10000
+    alpha = 0.2
+    gamma=0.8
+    epsilon=0.05
+    forwardStochasticOutcome = (0.1,0.8,0.1)
+    maxdelta = 0.000001
     return WumpusWorldQLearningScenario(layout_file = layout_filename,
-                               agent = QLearningWumpusAgent('north', verbose=True, numTraining=numTraining),
-                               trace=False, numTraining=numTraining)
+                               agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining, forwardStochasticOutcome=forwardStochasticOutcome, maxdelta=maxdelta),
+                               trace=False)
 
 #------------------------------------
 # examples of constructing ReinforcementLearningWumpusAgent scenario
@@ -270,7 +277,12 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
 
 def wscenario_4x4_QLearningWumpusAgent():
     numTraining = 10000
-    return WumpusWorldQLearningScenario(agent = QLearningWumpusAgent('north', verbose=True, numTraining=numTraining),
+    alpha = 0.2
+    gamma=0.8
+    epsilon=0.05
+    forwardStochasticOutcome = (0.1,0.8,0.1)
+    maxdelta = 0.000001
+    return WumpusWorldQLearningScenario(agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining, forwardStochasticOutcome=forwardStochasticOutcome, maxdelta=maxdelta),
                                objects = [(Wumpus(),(1,3)),
                                           (Pit(),(3,3)),
                                           (Pit(),(3,1)),
