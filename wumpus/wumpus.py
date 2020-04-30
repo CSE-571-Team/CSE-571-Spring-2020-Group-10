@@ -171,7 +171,7 @@ class WumpusWorldScenario(object):
 class WumpusWorldQLearningScenario(WumpusWorldScenario):
     def __init__(self, layout_file=None, agent=None, objects=None,
                  width=None, height=None, entrance=None, trace=True, numTraining=100,
-                 maxdelta=0.000001, forwardStochasticOutcome = (0.1,0.8,0.1)):
+                 maxdelta=0.0001, forwardStochasticOutcome = (0.1,0.8,0.1)):
         self.numTraining = numTraining
         self.maxdelta = maxdelta
         self.forwardStochasticOutcome = forwardStochasticOutcome
@@ -195,10 +195,10 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
     
     def getPolicy(self):
         policy = {}
-        for x in range (1, self.width + 1):
-            for y in range (1, self.height + 1):
-                for heading in range (0, 4):
-                    for has_gold in range (0, 2):
+        for x in range(1, self.width + 1):
+            for y in range(1, self.height + 1):
+                for heading in range(0, 4):
+                    for has_gold in (True, False):
                         policy[(x, y, heading, has_gold)] = QLearningWumpusAgent.getPolicy(self.agent, (x, y, heading, has_gold))
         print "Policy is: "
         print policy
@@ -211,17 +211,29 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
             else:
                 policy_match = True
                 newpolicy = {}
-                for x in range (1, self.width + 1):
-                    for y in range (1, self.height + 1):
-                        for heading in range (0, 4):
-                            for has_gold in range (0, 2):
-                                newpolicy[(x,y,heading,has_gold)] = QLearningWumpusAgent.getPolicy(self.agent, (x, y, heading, has_gold))
+                for x in range(1, self.width + 1):
+                    for y in range(1, self.height + 1):
+                        for heading in range(0, 4):
+                            for has_gold in (True, False):
+                                newpolicy[(x, y, heading, has_gold)] = QLearningWumpusAgent.getPolicy(self.agent, (x, y, heading, has_gold))
                 for keystate in newpolicy.keys():
-                    if newpolicy[keystate] != self.prevPolicy[keystate]:
+                    if nt < 2000:
+                        policy_match = False
+                        break
+
+                    if newpolicy[keystate][0] != self.prevPolicy[keystate][0]:
+                        policy_match = False
+                        break
+
+                    # elif abs(newpolicy[keystate][1] - self.prevPolicy[keystate][1]) > self.maxdelta or newpolicy[keystate][1] == 0 or self.prevPolicy[keystate][1] == 0:
+
+                    if newpolicy[keystate][0] == self.prevPolicy[keystate][0] and abs(newpolicy[keystate][1] - self.prevPolicy[keystate][1]) > self.maxdelta:
                         policy_match = False
                         break
                 if policy_match:
-                    print "Convergence reached after " + str(nt) + "training , policy: " + str(newpolicy)
+                    print "new policy: " + str(newpolicy)
+                    print "prev policy: " + str(self.prevPolicy)
+                    print "Convergence reached after " + str(nt) + " training"
                     break
                 self.prevPolicy = newpolicy
             print "TRAINING no: " + str(nt)
@@ -247,7 +259,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
                 self.step()
             self.agent.reset()
             self.objects[0][0].alive = True
-            print self.objects
+            # print self.objects
             self.env = self.build_world(self.width, self.height, self.entrance, self.agent, self.objects)
 
         print self.env.to_string()
@@ -259,24 +271,32 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
         print "AFTER POLICY GENERATION"
         print self.env.to_string()
         self.agent.epsilon = 0.0
-        for step in range(steps):
-            if self.env.is_done():
-                print "DONE."
-                slist = []
-                if len(self.env.agents) > 0:
-                    slist += ['Final Scores:']
-                for agent in self.env.agents:
-                    slist.append(' {0}={1}'.format(agent, agent.performance_measure))
-                    if agent.verbose:
-                        if hasattr(agent, 'number_of_clauses_over_epochs'):
-                            print "number_of_clauses_over_epochs:" \
-                                  +" {0}".format(agent.number_of_clauses_over_epochs)
-                        if hasattr(agent, 'belief_loc_query_times'):
-                            print "belief_loc_query_times:" \
-                                  +" {0}".format(agent.belief_loc_query_times)
-                print ''.join(slist)
-                return
-            self.step()
+        final_scores = 0
+        for nar in range(100):
+            for step in range(steps):
+                if self.env.is_done():
+                    print "DONE."
+                    final_scores = final_scores + self.agent.performance_measure
+                    slist = []
+                    if len(self.env.agents) > 0:
+                        slist += ['Final Scores:']
+                    for agent in self.env.agents:
+                        slist.append(' {0}={1}'.format(agent, agent.performance_measure))
+                        if agent.verbose:
+                            if hasattr(agent, 'number_of_clauses_over_epochs'):
+                                print "number_of_clauses_over_epochs:" \
+                                    +" {0}".format(agent.number_of_clauses_over_epochs)
+                            if hasattr(agent, 'belief_loc_query_times'):
+                                print "belief_loc_query_times:" \
+                                    +" {0}".format(agent.belief_loc_query_times)
+                    print ''.join(slist)
+                    # return
+                self.step()
+            self.agent.reset()
+            self.objects[0][0].alive = True
+            # print self.objects
+            self.env = self.build_world(self.width, self.height, self.entrance, self.agent, self.objects)
+        print "average final score: " + str(final_scores/100)
 
 #-------------------------------------------------------------------------------
 
@@ -290,9 +310,9 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
     numTraining = 10000
     alpha = 0.2
     gamma=0.8
-    epsilon=0.05
+    epsilon=0.15
     forwardStochasticOutcome = (0.1,0.8,0.1)
-    maxdelta = 0.000001
+    maxdelta = 0.0001
     return WumpusWorldQLearningScenario(layout_file = layout_filename,
                                agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining), forwardStochasticOutcome=forwardStochasticOutcome, maxdelta=maxdelta,
                                trace=False)
@@ -307,7 +327,7 @@ def wscenario_4x4_QLearningWumpusAgent():
     gamma=0.8
     epsilon=0.05
     forwardStochasticOutcome = (0.1,0.8,0.1)
-    maxdelta = 0.000001
+    maxdelta = 0.000000000000001
     return WumpusWorldQLearningScenario(agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining), forwardStochasticOutcome=forwardStochasticOutcome, maxdelta=maxdelta,
                                objects = [(Wumpus(),(1,3)),
                                           (Pit(),(3,3)),

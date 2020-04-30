@@ -90,7 +90,7 @@ class QLearningAgent(ReinforcementAgent):
                 if q >= maxv:
                     maxv = q
                     bestAction = action
-            return bestAction
+            return (bestAction,maxv)
         return None
 
     def getAction(self, state, percept):
@@ -111,7 +111,7 @@ class QLearningAgent(ReinforcementAgent):
             if util.flipCoin(self.epsilon) == True:
                 action = random.choice(possibleActions)
             else:
-                action = self.getPolicy(state)
+                action,_ = self.getPolicy(state)
         return action
 
     def update(self, state, action, nextState, reward):
