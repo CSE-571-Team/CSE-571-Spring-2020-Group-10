@@ -175,6 +175,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
         self.numTraining = numTraining
         self.maxdelta = maxdelta
         self.forwardStochasticOutcome = forwardStochasticOutcome
+        self.prevPolicy = None
         super(WumpusWorldQLearningScenario, self).__init__(layout_file, agent, objects, width, height, entrance, trace)
 
     def build_world(self, width, height, entrance, agent, objects):
@@ -191,20 +192,38 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
         for (obj, loc) in objects:
             env.add_thing(obj, loc)
         return env
-
+    
+    def getPolicy(self):
+        policy = {}
+        for x in range (1, self.width + 1):
+            for y in range (1, self.height + 1):
+                for heading in range (0, 4):
+                    for has_gold in range (0, 2):
+                        policy[(x, y, heading, has_gold)] = QLearningWumpusAgent.getPolicy(self.agent, (x, y, heading, has_gold))
+        print "Policy is: "
+        print policy
+        return policy
+    
     def run(self, steps = 1000):
         for nt in range(self.numTraining):
-            delta = self.agent.delta
-            if bool(delta):
-                keys = delta.keys()
-                isConverged = True
-                for key in keys:
-                    if abs(delta[key]) > self.maxdelta:
-                        isConverged = False
+            if self.prevPolicy == None:
+                self.prevPolicy = self.getPolicy()
+            else:
+                policy_match = True
+                newpolicy = {}
+                for x in range (1, self.width + 1):
+                    for y in range (1, self.height + 1):
+                        for heading in range (0, 4):
+                            for has_gold in range (0, 2):
+                                newpolicy[(x,y,heading,has_gold)] = QLearningWumpusAgent.getPolicy(self.agent, (x, y, heading, has_gold))
+                for keystate in newpolicy.keys():
+                    if newpolicy[keystate] != self.prevPolicy[keystate]:
+                        policy_match = False
                         break
-                if isConverged: 
-                    print "Convergence reached after " + str(nt) + "training , delta: " + str(delta)
+                if policy_match:
+                    print "Convergence reached after " + str(nt) + "training , policy: " + str(newpolicy)
                     break
+                self.prevPolicy = newpolicy
             print "TRAINING no: " + str(nt)
             for step in range(steps):
                 if self.env.is_done():
