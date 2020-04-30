@@ -195,9 +195,16 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
     def run(self, steps = 1000):
         for nt in range(self.numTraining):
             delta = self.agent.delta
-            if delta != None and abs(delta) < self.maxdelta:
-                print "Convergence reached, delta: " + str(delta)
-                break
+            if bool(delta):
+                keys = delta.keys()
+                isConverged = True
+                for key in keys:
+                    if abs(delta[key]) > self.maxdelta:
+                        isConverged = False
+                        break
+                if isConverged: 
+                    print "Convergence reached after " + str(nt) + "training , delta: " + str(delta)
+                    break
             print "TRAINING no: " + str(nt)
             for step in range(steps):
                 if self.env.is_done():
