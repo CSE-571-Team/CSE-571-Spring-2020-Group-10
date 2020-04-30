@@ -499,6 +499,7 @@ class QLearningWumpusAgent(QLearningAgent, Explorer):
         Explorer.__init__(self, program = self.agent_program, heading = 'north', environment = environment, verbose = True)
         self.previous_score = 0
         self.previous_state = None
+        self.delta = None
 
     def reset(self):
         Explorer.reset(self)
@@ -523,5 +524,4 @@ class QLearningWumpusAgent(QLearningAgent, Explorer):
         reward = self.performance_measure - self.previous_score
         self.previous_score = self.performance_measure
         print 'update ' + str(self.previous_state) + ' ' + str(previous_action) + ' ' + str(state) + ' ' + str(reward)
-        QLearningAgent.update(self, self.previous_state, previous_action, state, reward)
-        
+        self.delta = QLearningAgent.update(self, self.previous_state, previous_action, state, reward)

@@ -170,8 +170,9 @@ class WumpusWorldScenario(object):
 
 class WumpusWorldQLearningScenario(WumpusWorldScenario):
     def __init__(self, layout_file=None, agent=None, objects=None,
-                 width=None, height=None, entrance=None, trace=True, numTraining=100):
+                 width=None, height=None, entrance=None, trace=True, numTraining=100, maxdelta=0.000001):
         self.numTraining = numTraining
+        self.maxdelta = maxdelta
         super(WumpusWorldQLearningScenario, self).__init__(layout_file, agent, objects, width, height, entrance, trace)
 
     def build_world(self, width, height, entrance, agent, objects):
@@ -190,10 +191,13 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
         return env
 
     def run(self, steps = 1000):
-        for _ in range(self.numTraining):
-            print "TRAINING"
+        for nt in range(self.numTraining):
+            delta = self.agent.delta
+            if delta != None and abs(delta) < self.maxdelta:
+                print "Convergence reached, delta: " + str(delta)
+                break
+            print "TRAINING no: " + str(nt)
             for step in range(steps):
-                print self.env.to_string()
                 if self.env.is_done():
                     state = (self.agent.location[0], self.agent.location[1], self.agent.heading, self.agent.has_gold)
                     self.agent.update(state, self.agent.previous_action)
@@ -226,6 +230,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
 
         print "AFTER POLICY GENERATION"
         print self.env.to_string()
+        self.agent.epsilon = 0.0
         for step in range(steps):
             if self.env.is_done():
                 print "DONE."
@@ -254,9 +259,10 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
     experiences.
     layout_filename := name of layout file to load
     """
-    return WumpusWorldScenario(layout_file = layout_filename,
-                               agent = QLearningWumpusAgent('north', verbose=True),
-                               trace=False)
+    numTraining = 10000
+    return WumpusWorldQLearningScenario(layout_file = layout_filename,
+                               agent = QLearningWumpusAgent('north', verbose=True, numTraining=numTraining),
+                               trace=False, numTraining=numTraining)
 
 #------------------------------------
 # examples of constructing ReinforcementLearningWumpusAgent scenario
