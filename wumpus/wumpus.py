@@ -133,9 +133,9 @@ class WumpusWorldScenario(object):
 
     def step(self):
         self.env.step()
-        print
-        print "Current Wumpus Environment:"
-        print self.env.to_string()
+        # print
+        # print "Current Wumpus Environment:"
+        # print self.env.to_string()
 
     def run(self, steps = 1000):
         print self.env.to_string()
@@ -264,7 +264,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
                     print ''.join(slist)
                     break
                 self.step()
-            self.agent.epsilon = self.agent.epsilon - nt*(initepsilon/self.numTraining)
+            # self.agent.epsilon = self.agent.epsilon - nt*(initepsilon/self.numTraining)
             self.agent.reset()
             for obj in self.objects:
                 if isinstance(obj[0], Wumpus):
@@ -314,7 +314,8 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
         print "final scores:"
         print final_scores
         print "average final score: " + str(total_score/self.totalActualRuns)
-
+        print 'Number of trainings'
+        print nt
 #-------------------------------------------------------------------------------
 
 def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
@@ -328,7 +329,7 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
     minNumTraining = 2000
     totalActualRuns = 100
     alpha = 0.2
-    gamma=0.95
+    gamma=1.0
     epsilon=0.5
     forwardStochasticOutcome = (0.1,0.8,0.1)
     maxdelta = 0.001
@@ -347,13 +348,13 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
 # specifying objects as list
 
 def wscenario_4x4_QLearningWumpusAgent():
-    numTraining = 4000
+    numTraining = 12000
     alpha = 0.2
     gamma=0.8
-    epsilon=0.5
+    epsilon=0.05
     forwardStochasticOutcome = (0.1,0.8,0.1)
     maxdelta = 0.001
-    minNumTraining = 3500
+    minNumTraining = 10000
     totalActualRuns = 100
     return WumpusWorldQLearningScenario(
         agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining),
