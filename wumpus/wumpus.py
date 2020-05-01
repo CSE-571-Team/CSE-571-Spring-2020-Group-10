@@ -264,7 +264,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
                     print ''.join(slist)
                     break
                 self.step()
-            # self.agent.epsilon = self.agent.epsilon - nt*(initepsilon/self.numTraining)
+            self.agent.epsilon = self.agent.epsilon - nt*(initepsilon/self.numTraining)
             self.agent.reset()
             for obj in self.objects:
                 if isinstance(obj[0], Wumpus):
@@ -307,8 +307,9 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
                     break
                 self.step()
             self.agent.reset()
-            self.objects[0][0].alive = True
-            # print self.objects
+            for obj in self.objects:
+                if isinstance(obj[0], Wumpus):
+                    obj[0].alive = True
             self.env = self.build_world(self.width, self.height, self.entrance, self.agent, self.objects)
         print "final scores:"
         print final_scores
@@ -327,10 +328,10 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
     minNumTraining = 2000
     totalActualRuns = 100
     alpha = 0.2
-    gamma=0.999
-    epsilon=0.1
+    gamma=0.95
+    epsilon=0.5
     forwardStochasticOutcome = (0.1,0.8,0.1)
-    maxdelta = 0.00000000001
+    maxdelta = 0.001
     return WumpusWorldQLearningScenario(
         layout_file = layout_filename,
         agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining),
@@ -351,7 +352,7 @@ def wscenario_4x4_QLearningWumpusAgent():
     gamma=0.8
     epsilon=0.5
     forwardStochasticOutcome = (0.1,0.8,0.1)
-    maxdelta = 0.000000000000001
+    maxdelta = 0.001
     minNumTraining = 3500
     totalActualRuns = 100
     return WumpusWorldQLearningScenario(
