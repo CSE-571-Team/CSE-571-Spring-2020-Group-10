@@ -510,7 +510,6 @@ class QLearningWumpusAgent(QLearningAgent, Explorer):
         self.performance_measure = 0
         self.previous_state = None
         self.action = 'Forward'
-        self.isTrainingDone = False
         self.wumpus_alive = True
     
     def doneTraining(self):
@@ -520,7 +519,7 @@ class QLearningWumpusAgent(QLearningAgent, Explorer):
         if percept[4]:
             self.wumpus_alive = False
         state = (self.location[0], self.location[1], self.heading, self.has_gold, self.wumpus_alive)
-        if self.previous_state != None and not self.isTrainingDone:
+        if self.previous_state != None and self.isTrainingDone == False:
             self.update(state, self.previous_action)
         self.previous_action = QLearningAgent.getAction(self, state, percept)
         self.previous_state = state

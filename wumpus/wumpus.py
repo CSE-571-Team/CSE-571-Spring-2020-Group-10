@@ -277,7 +277,8 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
         f.write(str(self.agent.qValues))
         f.close()
 
-        self.agent.doneTraining()
+        # self.agent.doneTraining()
+        QLearningWumpusAgent.doneTraining(self.agent)
 
         print "AFTER POLICY GENERATION"
         print self.env.to_string()
@@ -350,11 +351,11 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
 def wscenario_4x4_QLearningWumpusAgent():
     numTraining = 12000
     alpha = 0.2
-    gamma=0.8
+    gamma=0.6
     epsilon=0.05
     forwardStochasticOutcome = (0.1,0.8,0.1)
-    maxdelta = 0.001
-    minNumTraining = 10000
+    maxdelta = 0.000000001
+    minNumTraining = 4500
     totalActualRuns = 100
     return WumpusWorldQLearningScenario(
         agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining),
