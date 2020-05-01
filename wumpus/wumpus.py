@@ -314,7 +314,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
             self.env = self.build_world(self.width, self.height, self.entrance, self.agent, self.objects)
         print "final scores:"
         print final_scores
-        print "average final score: " + str(total_score/self.totalActualRuns)
+        print "average final score: " + str(total_score/len(final_scores))
         print 'Number of trainings'
         print nt
 #-------------------------------------------------------------------------------
@@ -327,11 +327,11 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
     layout_filename := name of layout file to load
     """
     numTraining = 12000
-    minNumTraining = 2000
+    minNumTraining = 8000
     totalActualRuns = 100
     alpha = 0.2
-    gamma=1.0
-    epsilon=0.5
+    gamma=0.95
+    epsilon=0.05
     forwardStochasticOutcome = (0.1,0.8,0.1)
     maxdelta = 0.001
     return WumpusWorldQLearningScenario(
@@ -351,11 +351,11 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
 def wscenario_4x4_QLearningWumpusAgent():
     numTraining = 12000
     alpha = 0.2
-    gamma=0.6
+    gamma=0.8
     epsilon=0.05
-    forwardStochasticOutcome = (0.1,0.8,0.1)
-    maxdelta = 0.000000001
-    minNumTraining = 4500
+    forwardStochasticOutcome = (0.2,0.6,0.2)
+    maxdelta = 0.001
+    minNumTraining = 10000
     totalActualRuns = 100
     return WumpusWorldQLearningScenario(
         agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining),
