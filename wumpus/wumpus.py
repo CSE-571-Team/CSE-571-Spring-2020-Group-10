@@ -267,7 +267,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
             for obj in self.objects:
                 if isinstance(obj[0], Wumpus):
                     obj[0].alive = True
-            self.env = self.build_world(self.width, self.height, self.entrance, self.agent, self.initObjects)
+            self.env = self.build_world(self.width, self.height, self.entrance, self.agent, self.objects)
 
         print self.env.to_string()
 
