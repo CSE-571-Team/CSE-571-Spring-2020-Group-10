@@ -203,7 +203,8 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
             for y in range(1, self.height + 1):
                 for heading in range(0, 4):
                     for has_gold in (True, False):
-                        policy[(x, y, heading, has_gold)] = QLearningWumpusAgent.getPolicy(self.agent, (x, y, heading, has_gold))
+                        for wumpus_alive in (True, False):
+                            policy[(x, y, heading, has_gold, wumpus_alive)] = QLearningWumpusAgent.getPolicy(self.agent, (x, y, heading, has_gold, wumpus_alive))
         # print "Policy is: "
         # print policy
         return policy
@@ -220,7 +221,8 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
                     for y in range(1, self.height + 1):
                         for heading in range(0, 4):
                             for has_gold in (True, False):
-                                newpolicy[(x, y, heading, has_gold)] = QLearningWumpusAgent.getPolicy(self.agent, (x, y, heading, has_gold))
+                                for wumpus_alive in (True, False):
+                                    newpolicy[(x, y, heading, has_gold, wumpus_alive)] = QLearningWumpusAgent.getPolicy(self.agent, (x, y, heading, has_gold, wumpus_alive))
                 for keystate in newpolicy.keys():
                     if nt < self.minNumTraining:
                         policy_match = False
@@ -244,7 +246,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
             print "TRAINING no: " + str(nt)
             for step in range(steps):
                 if self.env.is_done():
-                    state = (self.agent.location[0], self.agent.location[1], self.agent.heading, self.agent.has_gold)
+                    state = (self.agent.location[0], self.agent.location[1], self.agent.heading, self.agent.has_gold, self.agent.wumpus_alive)
                     self.agent.update(state, self.agent.previous_action)
                     print "DONE."
                     slist = []
@@ -262,7 +264,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
                     print ''.join(slist)
                     break
                 self.step()
-            self.agent.epsilon = self.agent.epsilon - nt*(initepsilon/self.numTraining)
+            # self.agent.epsilon = self.agent.epsilon - nt*(initepsilon/self.numTraining)
             self.agent.reset()
             for obj in self.objects:
                 if isinstance(obj[0], Wumpus):
@@ -322,12 +324,12 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
     layout_filename := name of layout file to load
     """
     numTraining = 12000
-    minNumTraining = 10000
+    minNumTraining = 2000
     totalActualRuns = 100
     alpha = 0.2
-    gamma=0.8
-    epsilon=0.5
-    forwardStochasticOutcome = (0.005,0.99,0.005)
+    gamma=0.999
+    epsilon=0.1
+    forwardStochasticOutcome = (0.1,0.8,0.1)
     maxdelta = 0.00000000001
     return WumpusWorldQLearningScenario(
         layout_file = layout_filename,
