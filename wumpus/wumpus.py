@@ -171,11 +171,13 @@ class WumpusWorldScenario(object):
 class WumpusWorldQLearningScenario(WumpusWorldScenario):
     def __init__(self, layout_file=None, agent=None, objects=None,
                  width=None, height=None, entrance=None, trace=True, numTraining=100,
-                 maxdelta=0.0001, forwardStochasticOutcome = (0.1,0.8,0.1)):
+                 maxdelta=0.0001, forwardStochasticOutcome = (0.1,0.8,0.1), totalActualRuns=100, minNumTraining=50):
         self.numTraining = numTraining
         self.maxdelta = maxdelta
         self.forwardStochasticOutcome = forwardStochasticOutcome
         self.prevPolicy = None
+        self.totalActualRuns = totalActualRuns
+        self.minNumTraining = minNumTraining
         super(WumpusWorldQLearningScenario, self).__init__(layout_file, agent, objects, width, height, entrance, trace)
 
     def build_world(self, width, height, entrance, agent, objects):
@@ -217,7 +219,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
                             for has_gold in (True, False):
                                 newpolicy[(x, y, heading, has_gold)] = QLearningWumpusAgent.getPolicy(self.agent, (x, y, heading, has_gold))
                 for keystate in newpolicy.keys():
-                    if nt < 10000:
+                    if nt < self.minNumTraining:
                         policy_match = False
                         break
 
@@ -268,15 +270,19 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
         f.write(str(self.agent.qValues))
         f.close()
 
+        self.agent.doneTraining()
+
         print "AFTER POLICY GENERATION"
         print self.env.to_string()
         self.agent.epsilon = 0.0
-        final_scores = 0
-        for nar in range(100):
+        final_scores = []
+        total_score = 0
+        for nar in range(self.totalActualRuns):
             for step in range(steps):
                 if self.env.is_done():
                     print "DONE: " + str(nar)
-                    final_scores = final_scores + self.agent.performance_measure
+                    total_score = total_score + self.agent.performance_measure
+                    final_scores.append((nar, self.agent.performance_measure))
                     slist = []
                     if len(self.env.agents) > 0:
                         slist += ['Final Scores:']
@@ -297,7 +303,9 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
             self.objects[0][0].alive = True
             # print self.objects
             self.env = self.build_world(self.width, self.height, self.entrance, self.agent, self.objects)
-        print "average final score: " + str(final_scores/100)
+        print "final scores:"
+        print final_scores
+        print "average final score: " + str(total_score/100)
 
 #-------------------------------------------------------------------------------
 
@@ -309,33 +317,37 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
     layout_filename := name of layout file to load
     """
     numTraining = 10000
+    minNumTraining = 5000
+    totalActualRuns = 100
     alpha = 0.2
-    gamma=0.8
+    gamma=0.999
     epsilon=0.05
     forwardStochasticOutcome = (0.1,0.8,0.1)
     maxdelta = 0.0001
     return WumpusWorldQLearningScenario(layout_file = layout_filename,
                                agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining), forwardStochasticOutcome=forwardStochasticOutcome, maxdelta=maxdelta,
-                               trace=False)
+                               trace=False, totalActualRuns=totalActualRuns, minNumTraining=minNumTraining)
 
 #------------------------------------
 # examples of constructing ReinforcementLearningWumpusAgent scenario
 # specifying objects as list
 
 def wscenario_4x4_QLearningWumpusAgent():
-    numTraining = 10000
+    numTraining = 11000
     alpha = 0.2
-    gamma=0.8
+    gamma=0.999
     epsilon=0.05
     forwardStochasticOutcome = (0.1,0.8,0.1)
     maxdelta = 0.000000000000001
+    minNumTraining = 10000
+    totalActualRuns = 100
     return WumpusWorldQLearningScenario(agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining), forwardStochasticOutcome=forwardStochasticOutcome, maxdelta=maxdelta,
                                objects = [(Wumpus(),(1,3)),
                                           (Pit(),(3,3)),
                                           (Pit(),(3,1)),
                                           (Gold(),(2,3))],
                                width = 4, height = 4, entrance = (1,1),
-                               trace=False, numTraining=numTraining)
+                               trace=False, numTraining=numTraining,totalActualRuns=totalActualRuns, minNumTraining=minNumTraining)
 
 #-------------------------------------------------------------------------------
 
