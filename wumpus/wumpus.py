@@ -321,17 +321,23 @@ def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
     experiences.
     layout_filename := name of layout file to load
     """
-    numTraining = 10000
-    minNumTraining = 5000
+    numTraining = 12000
+    minNumTraining = 10000
     totalActualRuns = 100
     alpha = 0.2
-    gamma=0.999
-    epsilon=0.05
-    forwardStochasticOutcome = (0.1,0.8,0.1)
-    maxdelta = 0.0001
-    return WumpusWorldQLearningScenario(layout_file = layout_filename,
-                               agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining), forwardStochasticOutcome=forwardStochasticOutcome, maxdelta=maxdelta,
-                               trace=False, totalActualRuns=totalActualRuns, minNumTraining=minNumTraining)
+    gamma=0.8
+    epsilon=0.5
+    forwardStochasticOutcome = (0.005,0.99,0.005)
+    maxdelta = 0.00000000001
+    return WumpusWorldQLearningScenario(
+        layout_file = layout_filename,
+        agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining),
+        forwardStochasticOutcome=forwardStochasticOutcome,
+        maxdelta=maxdelta,
+        numTraining=numTraining,
+        totalActualRuns=totalActualRuns,
+        minNumTraining=minNumTraining,
+        trace=False)
 
 #------------------------------------
 # examples of constructing ReinforcementLearningWumpusAgent scenario
@@ -346,13 +352,19 @@ def wscenario_4x4_QLearningWumpusAgent():
     maxdelta = 0.000000000000001
     minNumTraining = 3500
     totalActualRuns = 100
-    return WumpusWorldQLearningScenario(agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining), forwardStochasticOutcome=forwardStochasticOutcome, maxdelta=maxdelta,
-                               objects = [(Wumpus(),(1,3)),
-                                          (Pit(),(3,3)),
-                                          (Pit(),(3,1)),
-                                          (Gold(),(2,3))],
-                               width = 4, height = 4, entrance = (1,1),
-                               trace=False, numTraining=numTraining,totalActualRuns=totalActualRuns, minNumTraining=minNumTraining)
+    return WumpusWorldQLearningScenario(
+        agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining),
+        width = 4, height = 4, entrance = (1,1),
+        objects = [(Wumpus(),(1,3)),
+                    (Pit(),(3,3)),
+                    (Pit(),(3,1)),
+                    (Gold(),(2,3))],
+        forwardStochasticOutcome=forwardStochasticOutcome,
+        maxdelta=maxdelta,
+        numTraining=numTraining,
+        totalActualRuns=totalActualRuns,
+        minNumTraining=minNumTraining,
+        trace=False)
 
 #-------------------------------------------------------------------------------
 
