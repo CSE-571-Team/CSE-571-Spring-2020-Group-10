@@ -178,7 +178,9 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
         self.prevPolicy = None
         self.totalActualRuns = totalActualRuns
         self.minNumTraining = minNumTraining
+        self.layout_file = layout_file
         super(WumpusWorldQLearningScenario, self).__init__(layout_file, agent, objects, width, height, entrance, trace)
+        # self.initObjects = self.objects
 
     def build_world(self, width, height, entrance, agent, objects):
         """
@@ -202,8 +204,8 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
                 for heading in range(0, 4):
                     for has_gold in (True, False):
                         policy[(x, y, heading, has_gold)] = QLearningWumpusAgent.getPolicy(self.agent, (x, y, heading, has_gold))
-        print "Policy is: "
-        print policy
+        # print "Policy is: "
+        # print policy
         return policy
     
     def run(self, steps = 1000):
@@ -262,9 +264,10 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
                 self.step()
             self.agent.epsilon = self.agent.epsilon - nt*(initepsilon/self.numTraining)
             self.agent.reset()
-            self.objects[0][0].alive = True
-            # print self.objects
-            self.env = self.build_world(self.width, self.height, self.entrance, self.agent, self.objects)
+            for obj in self.objects:
+                if isinstance(obj[0], Wumpus):
+                    obj[0].alive = True
+            self.env = self.build_world(self.width, self.height, self.entrance, self.agent, self.initObjects)
 
         print self.env.to_string()
 
