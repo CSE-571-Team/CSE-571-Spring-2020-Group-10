@@ -446,6 +446,7 @@ class WumpusEnvironment(agents.XYEnvironment):
 
         return ''.join(slist)
 
+# stochastic environment
 class WumpusQLearningEnvironment(WumpusEnvironment):
     def __init__(self, width = 4, height = 4, entrance = (1, 1), forwardStochasticOutcome = (0.1,0.8,0.1)):
         self.forwardStochasticOutcome = forwardStochasticOutcome
@@ -459,7 +460,7 @@ class WumpusQLearningEnvironment(WumpusEnvironment):
             agent.heading = self.turn_heading(agent.heading, -1)
         elif action == 'TurnLeft':
             agent.heading = self.turn_heading(agent.heading, +1)
-        elif action == 'Forward':
+        elif action == 'Forward': # stochasticity
             r = random.random()
             if r <= self.forwardStochasticOutcome[0]: # left
                 self.move_to(agent, vector_add(self.heading_to_vector((agent.heading + 1)%4),

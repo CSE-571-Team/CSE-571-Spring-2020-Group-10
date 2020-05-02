@@ -502,6 +502,7 @@ class QLearningWumpusAgent(QLearningAgent, Explorer):
         self.isTrainingDone = False
         self.wumpus_alive = True
 
+    # reset parameters after one episode
     def reset(self):
         Explorer.reset(self)
         self.previous_score = 0
@@ -512,9 +513,11 @@ class QLearningWumpusAgent(QLearningAgent, Explorer):
         self.action = 'Forward'
         self.wumpus_alive = True
     
+    # to stop the policy updation after training
     def doneTraining(self):
         self.isTrainingDone = True
 
+    # returns optimal action based on q-values or random actions
     def agent_program(self, percept):
         if percept[4]:
             self.wumpus_alive = False
@@ -527,6 +530,7 @@ class QLearningWumpusAgent(QLearningAgent, Explorer):
         # val = raw_input('Debug :')
         return self.previous_action
     
+    # updating q-values
     def update(self, state, previous_action):
         reward = self.performance_measure - self.previous_score
         self.previous_score = self.performance_measure

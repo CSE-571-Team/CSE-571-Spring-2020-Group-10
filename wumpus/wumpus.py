@@ -188,6 +188,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
         Set the environment entrance
         objects := [(<wumpus_environment_object>, <location: (<x>,<y>) >, ...]
         """
+        # using stochastic environment
         env = WumpusQLearningEnvironment(width, height, entrance, forwardStochasticOutcome = self.forwardStochasticOutcome)
         if self.trace:
             agent = wumpus_environment.TraceAgent(agent)
@@ -197,6 +198,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
             env.add_thing(obj, loc)
         return env
     
+    # get policy for all states
     def getPolicy(self):
         policy = {}
         for x in range(1, self.width + 1):
@@ -211,10 +213,11 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
     
     def run(self, steps = 1000):
         initepsilon = self.agent.epsilon
+        # training
         for nt in range(self.numTraining):
             if self.prevPolicy == None:
                 self.prevPolicy = self.getPolicy()
-            else:
+            else: # trying to converge policy
                 policy_match = True
                 newpolicy = {}
                 for x in range(1, self.width + 1):
@@ -286,6 +289,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
         self.agent.epsilon = 0.0
         final_scores = []
         total_score = 0
+        # running actual tests
         for nar in range(self.totalActualRuns):
             for step in range(steps):
                 if self.env.is_done():
@@ -320,10 +324,8 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
             print "all episodes in this test went beyond " + str(steps) + " steps, the training is inconclusive"
         print 'Number of trainings: ' + str(nt)
 
-#------------------------------------
-# examples of constructing ReinforcementLearningWumpusAgent scenario
-# specifying objects as list
 
+# wumpus world scenario for q learning agent
 def wscenario_4x4_QLearningWumpusAgent(options):
     agent = QLearningWumpusAgent('north', verbose=True,  epsilon=options.epsilon, gamma=options.gamma, alpha=options.alpha, numTraining=options.numTraining)
 
