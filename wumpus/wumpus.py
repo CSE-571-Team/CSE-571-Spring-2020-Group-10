@@ -843,7 +843,7 @@ def readCommand( argv ):
                       help=default("max number of training for reinforcement learning agent"))
     parser.add_option('-m', '--mintraining', dest='minNumTraining', default=2000,
                       help=default("min number of training for reinforcement learning agent after which convergence starts"))
-    parser.add_option('-s', '--forwardStochasticOutcome', dest='forwardStochasticOutcome', default=[0.1,0.8,0.1],
+    parser.add_option('-s', '--forwardStochasticOutcome', dest='forwardStochasticOutcome', default="[0.1,0.8,0.1]",
                       help=default("probabilities of stochastic outcome for going left, forward and right for forward action for reinforcement learning agent"))
     parser.add_option('-d', '--maxdelta', dest='maxdelta', default=0.001,
                       help=default("max difference of q values, under which the policy can converge for reinforcement learning agent"))
