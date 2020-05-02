@@ -304,7 +304,6 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
                                 print "belief_loc_query_times:" \
                                     +" {0}".format(agent.belief_loc_query_times)
                     print ''.join(slist)
-                    # return
                     break
                 self.step()
             self.agent.reset()
@@ -314,61 +313,42 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
             self.env = self.build_world(self.width, self.height, self.entrance, self.agent, self.objects)
         print "final scores:"
         print final_scores
-        print "average final score: " + str(total_score/len(final_scores))
-        print 'Number of trainings'
-        print nt
-#-------------------------------------------------------------------------------
-
-def world_scenario_qlearning_wumpus_agent_from_layout(layout_filename):
-    """
-    Create WumpusWorldScenario with an automated reinforcement learning agent_program
-    that will try to solve the Hunt The Wumpus game on its own and learn from its own
-    experiences.
-    layout_filename := name of layout file to load
-    """
-    numTraining = 12000
-    minNumTraining = 8000
-    totalActualRuns = 100
-    alpha = 0.2
-    gamma=0.95
-    epsilon=0.05
-    forwardStochasticOutcome = (0.1,0.8,0.1)
-    maxdelta = 0.001
-    return WumpusWorldQLearningScenario(
-        layout_file = layout_filename,
-        agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining),
-        forwardStochasticOutcome=forwardStochasticOutcome,
-        maxdelta=maxdelta,
-        numTraining=numTraining,
-        totalActualRuns=totalActualRuns,
-        minNumTraining=minNumTraining,
-        trace=False)
+        if len(final_scores) > 0:
+            print "average final score: " + str(total_score/len(final_scores))
+        else:
+            print "all episodes in this test went beyond " + str(steps) + " steps, the training is inconclusive"
+        print 'Number of trainings: ' + str(nt)
 
 #------------------------------------
 # examples of constructing ReinforcementLearningWumpusAgent scenario
 # specifying objects as list
 
-def wscenario_4x4_QLearningWumpusAgent():
-    numTraining = 12000
-    alpha = 0.2
-    gamma=0.8
-    epsilon=0.05
-    forwardStochasticOutcome = (0.2,0.6,0.2)
-    maxdelta = 0.001
-    minNumTraining = 10000
-    totalActualRuns = 100
-    return WumpusWorldQLearningScenario(
-        agent = QLearningWumpusAgent('north', verbose=True,  epsilon=epsilon, gamma=gamma, alpha=alpha, numTraining=numTraining),
+def wscenario_4x4_QLearningWumpusAgent(options):
+    agent = QLearningWumpusAgent('north', verbose=True,  epsilon=options.epsilon, gamma=options.gamma, alpha=options.alpha, numTraining=options.numTraining)
+
+    if options.layout:
+        return WumpusWorldQLearningScenario(
+        layout_file=options.layout,
+        agent=agent,
+        forwardStochasticOutcome=options.forwardStochasticOutcome,
+        maxdelta=options.maxdelta,
+        numTraining=options.numTraining,
+        totalActualRuns=options.totalActualRuns,
+        minNumTraining=options.minNumTraining,
+        trace=False)
+    else:
+        return WumpusWorldQLearningScenario(
+        agent=agent,
         width = 4, height = 4, entrance = (1,1),
         objects = [(Wumpus(),(1,3)),
                     (Pit(),(3,3)),
                     (Pit(),(3,1)),
                     (Gold(),(2,3))],
-        forwardStochasticOutcome=forwardStochasticOutcome,
-        maxdelta=maxdelta,
-        numTraining=numTraining,
-        totalActualRuns=totalActualRuns,
-        minNumTraining=minNumTraining,
+        forwardStochasticOutcome=options.forwardStochasticOutcome,
+        maxdelta=options.maxdelta,
+        numTraining=options.numTraining,
+        totalActualRuns=options.totalActualRuns,
+        minNumTraining=options.minNumTraining,
         trace=False)
 
 #-------------------------------------------------------------------------------
@@ -843,6 +823,33 @@ def readCommand( argv ):
                                    + " (takes precedence over -k and -y option)"))
     parser.add_option('-l', '--layout', dest='layout', default=None,
                       help=default("Load layout file"))
+    
+    # options for reinforcement learning
+    # numTraining = 12000
+    # alpha = 0.2
+    # gamma=0.8
+    # epsilon=0.05
+    # forwardStochasticOutcome = (0.1,0.8,0.1)
+    # maxdelta = 0.001
+    # minNumTraining = 2000
+    # totalActualRuns = 100
+    parser.add_option('-g', '--gamma', dest='gamma', default=0.8,
+                      help=default("discount factor for reinforcement learning agent"))
+    parser.add_option('-a', '--alpha', dest='alpha', default=0.2,
+                      help=default("learning rate for reinforcement learning agent"))
+    parser.add_option('-e', '--epsilon', dest='epsilon', default=0.05,
+                      help=default("exploration factor for reinforcement learning agent"))
+    parser.add_option('-x', '--maxtraining', dest='numTraining', default=12000,
+                      help=default("max number of training for reinforcement learning agent"))
+    parser.add_option('-m', '--mintraining', dest='minNumTraining', default=2000,
+                      help=default("min number of training for reinforcement learning agent after which convergence starts"))
+    parser.add_option('-s', '--forwardStochasticOutcome', dest='forwardStochasticOutcome', default=[0.1,0.8,0.1],
+                      help=default("probabilities of stochastic outcome for going left, forward and right for forward action for reinforcement learning agent"))
+    parser.add_option('-d', '--maxdelta', dest='maxdelta', default=0.001,
+                      help=default("max difference of q values, under which the policy can converge for reinforcement learning agent"))
+    parser.add_option('-r', '--totalActualRuns', dest='totalActualRuns', default=100,
+                      help=default("number of tests to run after policy generation for reinforcement learning agent"))
+    
 
     parser.add_option('-t', '--test', action='store_true', dest='test_minisat',
                       default=False,
@@ -853,6 +860,7 @@ def readCommand( argv ):
     if len(otherjunk) != 0:
         raise Exception("Command line input not understood: " + str(otherjunk))
 
+    print "options: " + str(options)
     return options
 
 def run_command(options):
@@ -860,10 +868,16 @@ def run_command(options):
         run_minisat_test()
         return
     if options.rl:
-        if options.layout:
-            s = world_scenario_qlearning_wumpus_agent_from_layout(options.layout)
-        else:
-            s = wscenario_4x4_QLearningWumpusAgent()
+        options.gamma = float(options.gamma)
+        options.epsilon = float(options.epsilon)
+        options.alpha = float(options.alpha)
+        options.maxdelta = float(options.maxdelta)
+        options.minNumTraining = int(options.minNumTraining)
+        options.numTraining = int(options.numTraining)
+        options.totalActualRuns = int(options.totalActualRuns)
+        options.forwardStochasticOutcome = tuple(eval(options.forwardStochasticOutcome))
+
+        s = wscenario_4x4_QLearningWumpusAgent(options)
     elif options.hybrid:
         if options.layout:
             s = world_scenario_hybrid_wumpus_agent_from_layout(options.layout)
