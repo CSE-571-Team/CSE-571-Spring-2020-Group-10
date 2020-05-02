@@ -133,9 +133,9 @@ class WumpusWorldScenario(object):
 
     def step(self):
         self.env.step()
-        # print
-        # print "Current Wumpus Environment:"
-        # print self.env.to_string()
+        print
+        print "Current Wumpus Environment:"
+        print self.env.to_string()
 
     def run(self, steps = 1000):
         print self.env.to_string()
@@ -244,6 +244,7 @@ class WumpusWorldQLearningScenario(WumpusWorldScenario):
                     break
                 self.prevPolicy = newpolicy
             print "TRAINING no: " + str(nt)
+            print self.env.to_string()
             for step in range(steps):
                 if self.env.is_done():
                     state = (self.agent.location[0], self.agent.location[1], self.agent.heading, self.agent.has_gold, self.agent.wumpus_alive)

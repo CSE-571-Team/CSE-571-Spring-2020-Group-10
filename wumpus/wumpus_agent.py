@@ -523,7 +523,7 @@ class QLearningWumpusAgent(QLearningAgent, Explorer):
             self.update(state, self.previous_action)
         self.previous_action = QLearningAgent.getAction(self, state, percept)
         self.previous_state = state
-        # print self.previous_action
+        print self.previous_action
         # val = raw_input('Debug :')
         return self.previous_action
     
