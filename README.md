@@ -82,7 +82,7 @@ $ python wumpus.py -q -l wumpus_4x4_1
 Example run:
 
 ```
-$ python wumpus.py -q -s [0.1,0.8,0.1] -g 0.8 -a 0.2 -e 0.05 -x 123 -m 12 -d 0.0004 -r 70
+$ python wumpus.py -q -s [0.1,0.8,0.1] -g 0.8 -a 0.2 -e 0.05 -x 12000 -m 2000 -d 0.001 -r 100
 ```
 
 The below default values will be assumed if the above options are not provided:
